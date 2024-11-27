@@ -1,10 +1,10 @@
-/** 
+/**
  * 
- *  __  __ _            _             
- * |  \/  (_)__ _ _ ___| |  _  _ __ _ 
- * | |\/| | / _| '_/ _ \ |_| || / _` |
- * |_|  |_|_\__|_| \___/____\_,_\__,_|                                  
- *                                      
+ *  __  __ _           _____       _ 
+ * |  \/  (_)__ _ _ __|_   _|__ __| |_
+ * | |\/| | / _| '_/ _ \| |/ -_|_-<  _|
+ * |_|  |_|_\__|_| \___/|_|\___/__/\__|
+ *
  * MIT License
  *
  * Copyright (c) 2024 Alves Quentin
@@ -29,6 +29,20 @@
  * 
  **/
 
-#pragma once
+#include "CppUnitTest.h"
+#include <MicroLua.h>
 
-#include "Tool/MicroLuaGenerator.h"
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	TEST ===
+////////////////////////////////////////////////////////////////////////////////////////////
+namespace UnitTest {
+
+	TEST_CLASS( MicroReflection ) {
+
+	public:
+
+	};
+
+};

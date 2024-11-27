@@ -6,10 +6,16 @@ project "MicroTest"
 	targetdir "%{wks.location}/bin/%{cfg.buildcfg}/"
 	objdir "%{wks.location}/bin-int/%{prj.name}-%{cfg.buildcfg}"
 
-	includedirs "%{wks.location}/MicroLua/" 
-	externalincludedirs "%{wks.location}/MicroLua/" 
+	includedirs {
+		"%{wks.location}/MicroLua/",
+		"%{IncludeDirs.lua}"
+	}
+	externalincludedirs {
+		"%{wks.location}/MicroLua/",
+		"%{IncludeDirs.lua}"
+	} 
 
-	links "MicroLua"
+	links { "Lua", "MicroLua" }
 
 	--- CONFIGURATION
 	filter "configurations:Debug"
