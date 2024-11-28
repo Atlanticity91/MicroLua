@@ -45,6 +45,9 @@ MicroLuaValue::MicroLuaValue( )
 MicroLuaValue::MicroLuaValue( lua_State* lua_state ) 
 	: MicroLuaValue{ }
 {
+	if ( lua_state == NULL )
+		return;
+
 	if ( lua_isboolean( lua_state, MICRO_LUA_STACK_TOP ) ) {
 		m_type = MicroLuaTypes::Boolean;
 		m_data.Integer = lua_toboolean( lua_state, MICRO_LUA_STACK_TOP );

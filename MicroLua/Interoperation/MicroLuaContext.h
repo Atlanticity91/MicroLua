@@ -60,11 +60,40 @@ public:
 	~MicroLuaContext( );
 
 	/**
+	 * Create function
+	 * @note : Create Lua state.
+	 * @return : Return true when Lua state creation succeeded.
+	 **/
+	bool Create( );
+
+	/**
+	 * LoadDefaultLibraries method
+	 * @note : Load default libraries to Lua.
+	 **/
+	void LoadDefaultLibraries( );
+
+	/**
 	 * LoadLibraries method
 	 * @note : Load libraries to Lua.
 	 * @param libraries : Query libraries to open.
 	 **/
 	void LoadLibraries( std::initializer_list<lua_CFunction> libraries );
+
+	/**
+	 * Load function
+	 * @note : Load Lua program to Lua state.
+	 * @param source : Lua source code to load.
+	 * @return : Return true when Lua loading succeeded.
+	 **/
+	bool Load( const std::string& source );
+
+	/**
+	 * LoadFile function
+	 * @note : Load Lua file to Lua state.
+	 * @param path : Query Lua source file.
+	 * @return : Return true when Lua loading succeded.
+	 **/
+	bool LoadFile( const std::string& path );
 
 	/**
 	 * Execute function
@@ -80,7 +109,13 @@ public:
 	 * @param path : Query Lua source code file path.
 	 * @return : Return true when Lua execution succeeded.
 	 **/
-	bool ExecuteFile ( const std::string& path );
+	bool ExecuteFile( const std::string& path );
+
+	/**
+	 * Terminate method
+	 * @note : Terminate the Lua state.
+	 **/
+	void Terminate( );
 
 public:
 	/**
@@ -241,6 +276,13 @@ public:
 
 public:
 	/**
+	 * GetIsValid const function
+	 * @note : Get if Lua state is valid.
+	 * @return : Return true when Lua state is valid.
+	 **/
+	bool GetIsValid( ) const;
+
+	/**
 	 * Get const function
 	 * @note : Get Lua state.
 	 * @return : Return Lua state value.
@@ -291,6 +333,13 @@ public:
 	};
 
 public:
+	/**
+	 * Cast operator
+	 * @note : Get if Lua state is valid.
+	 * @return : Return GetIsValid( ) call value.
+	 **/
+	operator bool ( ) const;
+
 	/**
 	 * Cast operator
 	 * @note : Get Lua state.
