@@ -31,19 +31,7 @@
 
 #pragma once
 
-#ifdef MICRO_USE_CORE
-#	include <MicroCore/MicroCore.h>
-#else
-#	include "Utils/MicroTraits.h"
-#endif
-
-extern "C" {
-	#include <lua/lua.h>
-	#include <lua/lualib.h>
-	#include <lua/lauxlib.h>
-};
-
-#define MICRO_LUA_STACK_TOP ( -1 )
+#include "../Utils/MicroCore.h"
 
 /**
  * MicroLuaTypes enum class
@@ -54,6 +42,7 @@ micro_enum_class MicroLuaTypes : uint32_t {
 	Boolean = 0,
 	Integer,
 	Number,
+	String,
 	Pointer,
 	Function,
 	None
@@ -73,11 +62,8 @@ namespace micro {
 	 * @return : Return Lua type.
 	 **/
 	template<typename Type>
-	constexpr MicroLuaTypes GetCompileLuaType = 
-		( 
-			std::is_pointer<Type>::value ||
-			std::is_class<Type>::value 
-		) ? MicroLuaTypes::Pointer : MicroLuaTypes::None;
+	constexpr MicroLuaTypes GetCompileLuaType =
+		( std::is_pointer<Type>::value ) ? MicroLuaTypes::Pointer : MicroLuaTypes::None;
 
 	MICRO_COMPILE_LUA_TYPE( lua_CFunction, Function );
 	MICRO_COMPILE_LUA_TYPE( lua_Integer, Integer );
@@ -86,7 +72,9 @@ namespace micro {
 	MICRO_COMPILE_LUA_TYPE( int8_t, Integer );
 	MICRO_COMPILE_LUA_TYPE( int16_t, Integer );
 	MICRO_COMPILE_LUA_TYPE( int32_t, Integer );
-	MICRO_COMPILE_LUA_TYPE( float, Number );
+	MICRO_COMPILE_LUA_TYPE( float, Number ); 
+	MICRO_COMPILE_LUA_TYPE( micro_string, String );
+	MICRO_COMPILE_LUA_TYPE( std::string, String );
 
 	/**
 	 * GetLuaType template function

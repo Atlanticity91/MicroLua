@@ -34,108 +34,54 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaContext::MicroLuaContext( ) 
-	: m_state{ NULL }
+MicroLuaClass::MicroLuaClass( )
+	: m_name{ NULL }
 { }
 
-MicroLuaContext::MicroLuaContext( MicroLuaContext&& other )
-	: m_state{ other.m_state } 
-{
-	other.m_state = NULL;
-}
-
-MicroLuaContext::~MicroLuaContext( ) {
-	Terminate( );
-}
-
-bool MicroLuaContext::Create( ) {
-	if ( GetIsValid( ) )
-		Terminate( );
-
-	m_state = luaL_newstate( );
-
-	return GetIsValid( );
-}
-
-void MicroLuaContext::LoadDefaultLibraries( ) {
-	if ( !GetIsValid( ) )
+MicroLuaClass::MicroLuaClass( lua_State* lua_state, const std::string& name )
+	: MicroLuaClass{ }
+{ 
+	if ( lua_state == NULL )
 		return;
 
-	luaL_openlibs( m_state );
-}
+	auto* lua_name = name.c_str( );
 
-void MicroLuaContext::LoadLibraries( std::initializer_list<lua_CFunction> libraries ) {
-	if ( !GetIsValid( ) )
-		return;
+	lua_getglobal( lua_state, lua_name );
 
-	for ( auto library : libraries )
-		std::invoke( library, m_state );
-}
-
-bool MicroLuaContext::Inject( const std::string& source ) {
-	auto result = false;
-
-	if ( GetIsValid( ) && !source.empty( ) ) {
-		auto* source_code = source.c_str( );
-
-		result = ( luaL_dostring( m_state, source_code ) == LUA_OK );
-	}
-
-	return result;
-}
-
-bool MicroLuaContext::InjectFile( const std::string& path ) {
-	auto result = false;
-
-	if ( GetIsValid( ) && std::filesystem::exists( path ) ) {
-		auto* source_path = path.c_str( );
-
-		result = ( luaL_dofile( m_state, source_path ) == LUA_OK );
-	}
-
-	return result;
-}
-
-void MicroLuaContext::Terminate( ) {
-	if ( GetIsValid( ) )
-		lua_close( m_state );
+	if ( lua_istable( lua_state, MICRO_LUA_STACK_TOP ) == 1 )
+		m_name = lua_name;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC GET ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-bool MicroLuaContext::GetIsValid( ) const {
-	return ( m_state != NULL );
+bool MicroLuaClass::GetIsValid( ) const { 
+	return ( m_name != NULL ) && strlen( m_name ) > 0;
 }
 
-lua_State* MicroLuaContext::Get( ) const {
-	return m_state;
+MicroLuaTypes MicroLuaClass::GetHas( lua_State* lua_state, const std::string& name ) {
+	return MicroLuaTypes::None;
 }
 
-MicroLuaValue MicroLuaContext::Pop( ) const {
-	return { m_state };
+bool MicroLuaClass::GetHasField( lua_State* lua_state, const std::string& name ) {
+	return false;
 }
 
-MicroLuaValue MicroLuaContext::Get( const std::string& name ) const {
-	auto* lua_name = name.c_str( );
-	
-	if ( GetIsValid( ) )
-		lua_getglobal( m_state, lua_name );
-
-	return { m_state };
+bool MicroLuaClass::GetHasFunction( lua_State* lua_state, const std::string& name ) {
+	return false;
 }
 
-MicroLuaClass MicroLuaContext::GetClass( const std::string& name ) const {
-	return { m_state, name };
+MicroLuaValue MicroLuaClass::Get( lua_State* lua_state, const std::string& name ) {
+	return { };
+}
+
+lua_CFunction MicroLuaClass::GetFunction( lua_State* lua_state, const std::string& name ) {
+	return NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	OPERATOR ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaContext::operator bool ( ) const {
+MicroLuaClass::operator bool( ) const {
 	return GetIsValid( );
-}
-
-MicroLuaContext::operator lua_State* ( ) const {
-	return Get( );
 }

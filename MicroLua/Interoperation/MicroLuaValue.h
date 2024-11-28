@@ -66,7 +66,7 @@ public:
 		: m_data{ }
 	{
 		constexpr auto lua_type = micro::GetCompileLuaType<Type>;
-
+		
 		m_type = lua_type;
 
 		micro_compile_if( lua_type == MicroLuaTypes::Boolean )
@@ -75,7 +75,10 @@ public:
 			m_data.Integer = lua_Integer{ data };
 		micro_compile_elif( lua_type == MicroLuaTypes::Number )
 			m_data.Number = lua_Number{ data };
-		micro_compile_elif( lua_type == MicroLuaTypes::Pointer )
+		micro_compile_elif( 
+			lua_type == MicroLuaTypes::String  ||
+			lua_type == MicroLuaTypes::Pointer
+		)
 			m_data.Pointer = micro_cast( data, void* );
 		micro_compile_elif( lua_type == MicroLuaTypes::Function )
 			m_data.Function = data;
@@ -94,6 +97,13 @@ public:
 	 * @note : Get Lua type.
 	 **/
 	MicroLuaTypes GetType( ) const;
+
+	/**
+	 * GetHasValue const function
+	 * @note : Get if value is valid.
+	 * @return : Return if value is valid.
+	 **/
+	bool GetHasValue( ) const;
 
 	/**
 	 * Is const function
@@ -122,7 +132,12 @@ public:
 				result = (Type)( m_data.Integer );
 			micro_compile_elif( lua_type == MicroLuaTypes::Number )
 				result = (Type)( m_data.Number );
-			micro_compile_elif( lua_type == MicroLuaTypes::Pointer )
+			micro_compile_elif( lua_type == MicroLuaTypes::String ) {
+				micro_compile_if( std::is_same<std::string, Type>::value )
+					result = std::move( std::string{ micro_cast( m_data.Pointer, micro_string ) } );
+				micro_compile_else
+					result = micro_cast( m_data.Pointer, micro_string );
+			} micro_compile_elif( lua_type == MicroLuaTypes::Pointer )
 				result = micro_cast( m_data.Pointer, Type* );
 			micro_compile_elif( lua_type == MicroLuaTypes::Function )
 				result = m_data.Function;

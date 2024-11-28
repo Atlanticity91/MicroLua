@@ -53,6 +53,7 @@ extern "C" {
 #include <memory>
 #include <mutex>
 #include <new>
+#include <optional>
 #include <queue>
 #include <random>
 #include <regex>
@@ -226,7 +227,7 @@ extern "C" {
  * micro_variadic_expand macro
  * @note : Wrapper for template variadic parameter folf expression, simplify reading.
  **/
-#define micro_variadic_expand( ... ) ( [&] { __VA_ARGS__ }, ... )
+#define micro_variadic_expand( ... ) ( [&] { __VA_ARGS__ }( ), ... )
 
 /**
  * micro_string typedef

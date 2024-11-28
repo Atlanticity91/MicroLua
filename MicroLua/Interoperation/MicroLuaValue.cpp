@@ -67,6 +67,8 @@ MicroLuaValue::MicroLuaValue( lua_State* lua_state )
 		m_type = MicroLuaTypes::Pointer;
 		m_data.Pointer = lua_touserdata( lua_state, MICRO_LUA_STACK_TOP );
 	}
+
+	lua_pop( lua_state, 1 );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,6 +76,10 @@ MicroLuaValue::MicroLuaValue( lua_State* lua_state )
 ////////////////////////////////////////////////////////////////////////////////////////////
 MicroLuaTypes MicroLuaValue::GetType( ) const {
 	return m_type;
+}
+
+bool MicroLuaValue::GetHasValue( ) const {
+	return m_type != MicroLuaTypes::None;
 }
 
 bool MicroLuaValue::Is( const MicroLuaTypes lua_type ) const {

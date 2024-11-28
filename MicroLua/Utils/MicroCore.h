@@ -31,26 +31,16 @@
 
 #pragma once
 
-#include "MicroLuaClass.h"
+#ifdef MICRO_USE_CORE
+#	include <MicroCore/MicroCore.h>
+#else
+#	include "MicroTraits.h"
+#endif
 
-/**
- * MicroLuaMetaField struct
- * @note : Represent Lua metatable field.
- **/
-micro_struct MicroLuaMetaField {
-
-	micro_string Name;
-	MicroLuaValue Value;
-
-	/**
-	 * Constructor
-	 * @param name : Query field name.
-	 * @param value : Query field value.
-	 **/
-	template<typename Type>
-	MicroLuaMetaField( micro_string name, const Type& value )
-		: Name{ name },
-		Value{ value }
-	{ };
-
+extern "C" {
+	#include <lua/lua.h>
+	#include <lua/lualib.h>
+	#include <lua/lauxlib.h>
 };
+
+#define MICRO_LUA_STACK_TOP ( -1 )

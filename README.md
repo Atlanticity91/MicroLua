@@ -34,7 +34,7 @@ To build the project files simply run Setup-Linux.sh
 > [!CAUTION]
 > Macos isn't implemented yet.
 
-To build the project files simply run Setup-Linux.sh
+To build the project files simply run Setup-Macos.sh
 
 # Documentation
 Documentation for the library can be found under [Documentation/index.html](./Documentation/index.html)

@@ -36,6 +36,12 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace Microsoft::VisualStudio::CppUnitTestFramework {
 
+	/**
+	 * ToString function
+	 * @note : Convert Lua types to string.
+	 * @param value : Query Lua type.
+	 * @return : Return Lua type string value.
+	 **/
 	template<> 
 	inline std::wstring ToString<MicroLuaTypes>( const MicroLuaTypes& value ) { 
 		auto result = std::wstringstream{ };
@@ -64,38 +70,68 @@ namespace UnitTest {
 
 		struct TestType { };
 
-	public:
-		TEST_METHOD( GetLuaType ) {
-			auto test_integer  = micro::GetLuaType<lua_Integer>( );
-			auto test_number   = micro::GetLuaType<lua_Number>( );
-			auto test_boolean  = micro::GetLuaType<bool>( );
-			auto test_pointer  = micro::GetLuaType<void*>( );
-			auto test_class	   = micro::GetLuaType<TestType>( );
-			auto test_function = micro::GetLuaType<lua_CFunction>( );
+	private:
+		MicroLuaContext CreateTestContext( 
+			std::initializer_list<lua_CFunction> libraries 
+		) {
+			auto context = MicroLuaContext{ };
 
-			Assert::AreEqual( MicroLuaTypes::Integer , test_integer  );
-			Assert::AreEqual( MicroLuaTypes::Number  , test_number   );
-			Assert::AreEqual( MicroLuaTypes::Boolean , test_boolean  );
-			Assert::AreEqual( MicroLuaTypes::Pointer , test_pointer  );
-			Assert::AreEqual( MicroLuaTypes::Pointer , test_class    );
-			Assert::AreEqual( MicroLuaTypes::Function, test_function );
+			Assert::IsTrue( context.Create( ) );
+
+			context.LoadLibraries( libraries );
+
+			return std::move( context );
 		};
 
-		TEST_METHOD( Execute ) { 
-			auto context = MicroLuaContext{ };
-			auto result  = context.Execute( "x = 10 * 4" );
+	public:
+		TEST_METHOD( GetLuaType ) {
+			Assert::AreEqual( MicroLuaTypes::Integer , micro::GetLuaType<lua_Integer>( ) );
+			Assert::AreEqual( MicroLuaTypes::Number  , micro::GetLuaType<lua_Number>( ) );
+			Assert::AreEqual( MicroLuaTypes::Function, micro::GetLuaType<lua_CFunction>( ) );
+			Assert::AreEqual( MicroLuaTypes::Boolean , micro::GetLuaType<bool>( ) );
+			Assert::AreEqual( MicroLuaTypes::Pointer , micro::GetLuaType<void*>( ) );
+			Assert::AreEqual( MicroLuaTypes::Pointer , micro::GetLuaType<TestType*>( ) );
+			Assert::AreEqual( MicroLuaTypes::None	 , micro::GetLuaType<TestType>( ) );
+			Assert::AreEqual( MicroLuaTypes::String  , micro::GetLuaType<micro_string>( ) );
+			Assert::AreEqual( MicroLuaTypes::String  , micro::GetLuaType<std::string>( ) );
+		};
 
-			Assert::IsTrue( result );
+		TEST_METHOD( Call ) { 
+			auto context = CreateTestContext( { } );
+			
+			context.LoadDefaultLibraries( );
+			context.Inject( "function m( a )\nprint( a )\nend\n" );
+
+			Assert::IsTrue( context.Call( "m", 10 ) );
+		};
+
+		TEST_METHOD( CallParams ) {
+			auto context = CreateTestContext( { } );
+
+			context.LoadDefaultLibraries( );
+			context.Inject( "function add( a, b )\nreturn a + b\nend\n" );
+			
+			Assert::AreEqual( 9, context.CallFunction<int>( "add", 5, 4 ) );
 		};
 
 		TEST_METHOD( GetAs ) {
-			auto context = MicroLuaContext{ };
-			
-			context.Execute( "x = 10 * 4" );
+			auto context = CreateTestContext( { } );
+
+			context.Inject( "x = 10 * 4" );
 
 			auto result = context.GetAs<int32_t>( "x" );
 			
 			Assert::AreEqual( 40, result );
+		};
+
+		TEST_METHOD( Class ) {
+			auto context = CreateTestContext( { } );
+
+			context.Inject( "l = { }" );
+
+			lua_getglobal( context, "l" );
+
+			Assert::IsTrue( lua_istable( context, MICRO_LUA_STACK_TOP ) );
 		};
 
 	};
