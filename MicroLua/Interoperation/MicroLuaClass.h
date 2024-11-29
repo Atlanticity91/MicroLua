@@ -31,7 +31,24 @@
 
 #pragma once
 
-#include "MicroLuaValue.h"
+#include "MicroLuaData.h"
+
+/**
+ * MICRO_LUA_CLASS_GETAS_IMPL macro
+ * @note : Wrapper for GetAs implementation of MicroLuaClass.
+ **/
+#define MICRO_LUA_CLASS_GETAS_IMPL\
+	template<typename Type>\
+	Type MicroLuaClass::GetAs( lua_State* lua_state, const std::string& name ) {\
+		auto lua_value = Get( lua_state, name );\
+		return lua_value.As<Type>( );\
+	}
+
+/**
+ * MicroLuaValue struct
+ * @note : Foward declaration of C++ Lua value wrapper.
+ **/
+class MicroLuaValue;
 
 /**
  * MicroLuaClass final class
@@ -39,8 +56,10 @@
  **/
 micro_class MicroLuaClass final {
 
+	friend class MicroLuaValue;
+
 private:
-	micro_string m_name;
+	std::string m_table;
 
 public:
 	/**
@@ -53,12 +72,63 @@ public:
 	 * @param lua_state : Query Lua state.
 	 * @param name : Query table name.
 	 **/
-	MicroLuaClass( lua_State* lua_state, const std::string & name );
+	MicroLuaClass( lua_State* lua_state, const std::string& name );
+
+	/**
+	 * Move-Constructor
+	 * @param other : Query class to move.
+	 **/
+	MicroLuaClass( MicroLuaClass&& other );
 
 	/**
 	 * Destructor
 	 **/
 	~MicroLuaClass( ) = default;
+
+private:
+	/**
+	 * Constructor
+	 * @param name : Query table name.
+	 **/
+	MicroLuaClass( micro_string name );
+
+public:
+	/**
+	 * Set template function
+	 * @note : Set table field value.
+	 * @template Type : Query table field data type.
+	 * @param lua_state : Query Lua state.
+	 * @param name : Query field name.
+	 * @param value : Query field value.
+	 * @return : Return true when field 
+	 **/
+	template<typename Type>
+	bool Set( lua_State* lua_state, const std::string& name, const Type value ) {
+		auto lua_type = GetHas( lua_state, name );
+		auto result   = ( micro::GetCompileLuaType<Type> == lua_type );
+
+		if ( result ) {
+			auto* lua_table = m_table.c_str( );
+			auto* lua_name  = name.c_str( );
+
+			lua_getglobal( lua_state, lua_table );
+
+			micro::lua_push( lua_state, value );
+
+			lua_setfield( lua_state, -2, lua_name );
+		}
+
+		return result;
+	};
+
+private:
+	/**
+	 * PopFront method
+	 * @note : Pop field value to Lua top stack slot.
+	 * @param lua_state : Query Lua state.
+	 * @param name : Query field name.
+	 **/
+	void PopFront( lua_State* lua_state, const std::string& name );
 
 public:
 	/**
@@ -97,27 +167,28 @@ public:
 
 	/**
 	 * Get function
-	 * @note :
+	 * @note : Get field value from table.
 	 * @param lua_state : Query Lua state.
-	 * @param name : 
-	 * @return :
+	 * @param name : Query field name.
+	 * @return : Return Lua value of the field.
 	 **/
 	MicroLuaValue Get( lua_State* lua_state, const std::string& name );
 
 	/**
 	 * GetFunction function
-	 * @note :
+	 * @note : Get C function from the table. 
 	 * @param lua_state : Query Lua state.
-	 * @param name :
-	 * @return :
+	 * @param name : Query function name.
+	 * @return : Return C function pointer or NULL on failure.
 	 **/
 	lua_CFunction GetFunction( lua_State* lua_state, const std::string& name );
 
 public:
 	/**
 	 * As template function
-	 * @note : 
+	 * @note : Convert Lua class to it's C++ counterpart.
 	 * @template Type : Query C++ class type.
+	 * @return : Return C++ counterpart of the Lua class, filled by Lua value.
 	 */
 	template<class Type>
 		requires( !std::is_class<Type>::value )
@@ -125,25 +196,22 @@ public:
 		auto result = Type{ };
 
 	#	ifdef MICRO_USE_CORE
+		// TODO(Alves Quentin) : Class convertion code.
 	#	endif
 
 		return result;
 	};
 
 	/**
-	 * 
-	 * @note :
-	 * @template Type :
+	 * GetAs template function
+	 * @note : Get field casted as Type.
+	 * @template : Type : Query field type.
 	 * @param lua_state : Query Lua state.
-	 * @param name :
-	 * @return :
+	 * @param name : Query field name.
+	 * @return : Return field value as Type.
 	 **/
 	template<typename Type>
-	Type GetAs( lua_State* lua_state, const std::string& name ) {
-		auto result = Get( lua_state, name );
-
-		return result.As<Type>( );
-	};
+	Type GetAs( lua_State* lua_state, const std::string& name );
 
 public:
 	/**
@@ -152,5 +220,13 @@ public:
 	 * @return : Return GetIsValid( ) call value.
 	 **/
 	operator bool ( ) const;
+
+	/**
+	 * Asign operator
+	 * @note : Asign class based on another.
+	 * @param other : Query other class.
+	 * @return : Reference to current class.
+	 **/
+	MicroLuaClass& operator=( MicroLuaClass&& other );
 
 };

@@ -31,7 +31,7 @@
 
 #pragma once
 
-#include "MicroLuaClass.h"
+#include "MicroLuaValue.h"
 
 /**
  * MicroLuaMetaField struct
@@ -40,17 +40,13 @@
 micro_struct MicroLuaMetaField {
 
 	micro_string Name;
-	MicroLuaValue Value;
+	MicroLuaTypes Type;
 
 	/**
 	 * Constructor
 	 * @param name : Query field name.
 	 * @param value : Query field value.
 	 **/
-	template<typename Type>
-	MicroLuaMetaField( micro_string name, const Type& value )
-		: Name{ name },
-		Value{ value }
-	{ };
+	MicroLuaMetaField( micro_string name, const MicroLuaTypes type );
 
 };

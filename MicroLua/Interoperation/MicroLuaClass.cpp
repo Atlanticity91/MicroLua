@@ -35,7 +35,7 @@
 //		===	PUBLIC ===
 ////////////////////////////////////////////////////////////////////////////////////////////
 MicroLuaClass::MicroLuaClass( )
-	: m_name{ NULL }
+	: m_table{ }
 { }
 
 MicroLuaClass::MicroLuaClass( lua_State* lua_state, const std::string& name )
@@ -48,35 +48,100 @@ MicroLuaClass::MicroLuaClass( lua_State* lua_state, const std::string& name )
 
 	lua_getglobal( lua_state, lua_name );
 
-	if ( lua_istable( lua_state, MICRO_LUA_STACK_TOP ) == 1 )
-		m_name = lua_name;
+	if ( lua_istable( lua_state, MICRO_LUA_STACK_TOP ) )
+		m_table = name;
+
+	lua_pop( lua_state, 1 );
+}
+
+MicroLuaClass::MicroLuaClass( MicroLuaClass&& other )
+	: m_table{ std::move( other ) }
+{ }
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PRIVATE ===
+////////////////////////////////////////////////////////////////////////////////////////////
+MicroLuaClass::MicroLuaClass( micro_string name )
+	: m_table{ name }
+{ }
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PRIVATE ===
+////////////////////////////////////////////////////////////////////////////////////////////
+void MicroLuaClass::PopFront( lua_State* lua_state, const std::string& name ) {
+	auto* lua_table = m_table.c_str( ); 
+	auto* lua_name = name.c_str( );
+
+	lua_getglobal( lua_state, lua_table );
+	lua_pushstring( lua_state, lua_name );
+	lua_gettable( lua_state, -2 );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC GET ===
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool MicroLuaClass::GetIsValid( ) const { 
-	return ( m_name != NULL ) && strlen( m_name ) > 0;
+	return !m_table.empty( );
 }
 
 MicroLuaTypes MicroLuaClass::GetHas( lua_State* lua_state, const std::string& name ) {
-	return MicroLuaTypes::None;
+	auto result = MicroLuaTypes::None;
+
+	if ( lua_state != NULL && GetIsValid( ) ) {
+		PopFront( lua_state, name );
+
+		switch ( lua_type( lua_state, MICRO_LUA_STACK_TOP ) ) {
+			case LUA_TBOOLEAN		: result = MicroLuaTypes::Boolean;  break;
+			case LUA_TFUNCTION		: result = MicroLuaTypes::Function; break;
+			case LUA_TUSERDATA		: result = MicroLuaTypes::Pointer;  break;
+			case LUA_TLIGHTUSERDATA : result = MicroLuaTypes::Pointer;  break;
+			case LUA_TSTRING		: result = MicroLuaTypes::String;   break;
+			
+			case LUA_TNUMBER : 
+				if ( lua_isinteger( lua_state, MICRO_LUA_STACK_TOP ) )
+					result = MicroLuaTypes::Integer;
+				else
+					result = MicroLuaTypes::Number;   
+				
+				break;
+
+			default : break;
+		}
+
+		lua_pop( lua_state, 1 );
+	}
+
+	return result;
 }
 
 bool MicroLuaClass::GetHasField( lua_State* lua_state, const std::string& name ) {
-	return false;
+	return GetHas( lua_state, name ) < MicroLuaTypes::Function;
 }
 
 bool MicroLuaClass::GetHasFunction( lua_State* lua_state, const std::string& name ) {
-	return false;
+	return GetHas( lua_state, name ) == MicroLuaTypes::Function;
 }
 
 MicroLuaValue MicroLuaClass::Get( lua_State* lua_state, const std::string& name ) {
-	return { };
+	if ( lua_state != NULL && GetIsValid( ) )
+		PopFront( lua_state, name );
+
+	return { lua_state };
 }
 
 lua_CFunction MicroLuaClass::GetFunction( lua_State* lua_state, const std::string& name ) {
-	return NULL;
+	auto* lua_function = (lua_CFunction)NULL;
+
+	if ( lua_state != NULL && GetIsValid( ) ) {
+		PopFront( lua_state, name );
+
+		if ( lua_iscfunction( lua_state, MICRO_LUA_STACK_TOP ) )
+			lua_function = lua_tocfunction( lua_state, MICRO_LUA_STACK_TOP );
+
+		lua_pop( lua_state, 1 );
+	}
+
+	return lua_function;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,4 +149,10 @@ lua_CFunction MicroLuaClass::GetFunction( lua_State* lua_state, const std::strin
 ////////////////////////////////////////////////////////////////////////////////////////////
 MicroLuaClass::operator bool( ) const {
 	return GetIsValid( );
+}
+
+MicroLuaClass& MicroLuaClass::operator=( MicroLuaClass&& other ) {
+	m_table = std::move( other.m_table );
+
+	return micro_self;
 }

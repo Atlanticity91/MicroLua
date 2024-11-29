@@ -29,45 +29,12 @@
  *
  **/
 
-#pragma once
+#include <__micro_lua_pch.h>
 
-#ifdef MICRO_USE_CORE
-#	include <MicroCore/MicroCore.h>
-#else
-#	include "MicroTraits.h"
-#endif
-
-extern "C" {
-	#include <lua/lua.h>
-	#include <lua/lualib.h>
-	#include <lua/lauxlib.h>
-};
-
-#define MICRO_LUA_STACK_TOP ( -1 )
-
-namespace micro { 
-
-	/**
-	 * lua_push template method
-	 * @note : Wrapper for lua_push function.
-	 * @template Type : Query push data type.
-	 * @param lua_state : Query Lua state.
-	 * @param data : Query data to push.
-	 **/
-	template<typename Type>
-	void lua_push( lua_State* lua_state, const Type data ) {
-		micro_compile_if( std::is_integral<Type>::value )
-			lua_pushinteger( lua_state, (lua_Integer)data );
-		micro_compile_elif( std::is_floating_point<Type>::value )
-			lua_pushnumber( lua_state, (lua_Number)data );
-		micro_compile_elif( std::is_same<micro_string, Type>::value )
-			lua_pushstring( lua_state, data );
-		micro_compile_elif( std::is_same<lua_CFunction, Type>::value )
-			lua_pushcfunction( lua_state, data );
-		micro_compile_elif( std::is_pointer<Type>::value )
-			lua_pushlightuserdata( lua_state, data );
-		micro_compile_elif( std::is_reference<Type>::value )
-			lua_pushlightuserdata( lua_state, micro_ptr_as( data, void* ) );
-	};
-
-};
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PUBLIC ===
+////////////////////////////////////////////////////////////////////////////////////////////
+MicroLuaMetaField::MicroLuaMetaField( micro_string name, const MicroLuaTypes type )
+	: Name{ name },
+	Type{ type }
+{ }

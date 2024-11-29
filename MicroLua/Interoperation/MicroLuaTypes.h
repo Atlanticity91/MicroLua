@@ -45,6 +45,7 @@ micro_enum_class MicroLuaTypes : uint32_t {
 	String,
 	Pointer,
 	Function,
+	Class,
 	None
 
 };
@@ -62,8 +63,12 @@ namespace micro {
 	 * @return : Return Lua type.
 	 **/
 	template<typename Type>
-	constexpr MicroLuaTypes GetCompileLuaType =
-		( std::is_pointer<Type>::value ) ? MicroLuaTypes::Pointer : MicroLuaTypes::None;
+	constexpr MicroLuaTypes GetCompileLuaType = ( 
+		( std::is_pointer<Type>::value ) ? 
+			MicroLuaTypes::Pointer : 
+			( std::is_class<Type>::value ) ? 
+				MicroLuaTypes::Class : MicroLuaTypes::None
+	);
 
 	MICRO_COMPILE_LUA_TYPE( lua_CFunction, Function );
 	MICRO_COMPILE_LUA_TYPE( lua_Integer, Integer );

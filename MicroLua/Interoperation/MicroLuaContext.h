@@ -49,6 +49,12 @@ public:
 	MicroLuaContext( );
 
 	/**
+	 * Constructor
+	 * @param lua_state : Query lua state.
+	 **/
+	MicroLuaContext( lua_State* lua_state );
+
+	/**
 	 * Move-Constructor
 	 * @param other : Query context to move.
 	 **/
@@ -132,149 +138,18 @@ public:
 	 * @param element : Query element to push on Lua stack.
 	 **/
 	template<typename Type>
-	void Push( const std::string& name, const Type& element ) { };
-
-	/**
-	 * Push method
-	 * @note : Push C function to Lua stack.
-	 * @param name : Query function name on Lua stack.
-	 * @param function : Query function wrapped inside a lua_CFunction.
-	 **/
-	template<>
-	void Push<lua_CFunction>(
-		const std::string& name,
-		const lua_CFunction& function
-	) {
-		if ( function == NULL )
-			return;
-
+	void Push( const std::string& name, const Type element ) { 
 		auto* lua_name = name.c_str( );
 
-		lua_pushcclosure( m_state, function, 0 );
+		micro_compile_if( micro::GetCompileLuaType<Type> < MicroLuaTypes::Class )
+			micro::lua_push( m_state, element );
+		micro_compile_else{
+			// TODO(Alves Quentin) : Manage metatable push.
+		}
+
 		lua_setglobal( m_state, lua_name );
 	};
 
-	/**
-	 * Push method
-	 * @note : Push integer to Lua stack.
-	 * @param name : Query integer name on Lua stack.
-	 * @param element : Query integer value.
-	 **/
-	template<>
-	void Push<lua_Integer>( 
-		const std::string& name, 
-		const lua_Integer& element
-	) { 
-		auto* lua_name = name.c_str( );
-
-		lua_pushinteger( m_state, element );
-		lua_setglobal( m_state, lua_name );
-	};
-
-	/**
-	 * Push method
-	 * @note : Push number to Lua stack.
-	 * @param name : Query number name on Lua stack.
-	 * @param element : Query number value.
-	 **/
-	template<>
-	void Push<lua_Number>(
-		const std::string& name,
-		const lua_Number& element
-	) { 
-		auto* lua_name = name.c_str( );
-
-		lua_pushnumber( m_state, element );
-		lua_setglobal( m_state, lua_name );
-	};
-
-	/**
-	 * Push method
-	 * @note : Push boolean to Lua stack.
-	 * @param name : Query boolean name on Lua stack.
-	 * @param element : Query boolean value.
-	 **/
-	template<>
-	void Push<bool>( const std::string& name, const bool& element ) {
-		auto* lua_name = name.c_str( );
-
-		lua_pushboolean( m_state, element );
-		lua_setglobal( m_state, lua_name );
-	};
-
-	/**
-	 * Push method
-	 * @note : Push integer to Lua stack.
-	 * @param name : Query integer name on Lua stack.
-	 * @param element : Query integer value.
-	 **/
-	template<>
-	micro_inline void Push<int8_t>( 
-		const std::string& name, 
-		const int8_t& element
-	) {
-		Push( name, lua_Integer{ element } );
-	};
-
-	/**
-	 * Push method
-	 * @note : Push integer to Lua stack.
-	 * @param name : Query integer name on Lua stack.
-	 * @param element : Query integer value.
-	 **/
-	template<>
-	micro_inline void Push<int16_t>(
-		const std::string& name,
-		const int16_t& element
-	) {
-		Push( name, lua_Integer{ element } );
-	};
-
-	/**
-	 * Push method
-	 * @note : Push integer to Lua stack.
-	 * @param name : Query integer name on Lua stack.
-	 * @param element : Query integer value.
-	 **/
-	template<>
-	micro_inline void Push<int32_t>( 
-		const std::string& name,
-		const int32_t& element 
-	) {
-		Push( name, lua_Integer{ element } );
-	};
-	
-	/**
-	 * Push method
-	 * @note : Push number to Lua stack.
-	 * @param name : Query number name on Lua stack.
-	 * @param element : Query number value.
-	 **/
-	template<>
-	micro_inline void Push<float>(
-		const std::string& name,
-		const float& element
-	) {
-		Push( name, lua_Number{ element } );
-	};
-
-	/**
-	 * Push method
-	 * @note : Push string to Lua stack.
-	 * @param name : Query string name on Lua stack.
-	 * @param function : Query string.
-	 **/
-	template<>
-	void Push<micro_string>(
-		const std::string& name,
-		const micro_string& string
-	) {
-		auto* lua_name = name.c_str( );
-
-		lua_pushstring( m_state, ( string != NULL ) ? string : "" );
-		lua_setglobal( m_state, lua_name );
-	};
-	
 	/**
 	 * Push method
 	 * @note : Push string to Lua stack.
@@ -284,13 +159,25 @@ public:
 	template<>
 	void Push<std::string>(
 		const std::string& name,
-		const std::string& string
+		const std::string string
 	) {
 		auto* lua_string = string.c_str( );
-		auto* lua_name   = name.c_str( );
-		
-		lua_pushstring( m_state, lua_string );
-		lua_setglobal( m_state, lua_name );
+
+		Push( name, lua_string );
+	};
+
+	/**
+	 * Create template method
+	 * @note : Create variable on Lua stack.
+	 * @template : Query variable type.
+	 * @param name : Query variable name.
+	 **/
+	template<typename Type>
+		requires( std::is_constructible<Type>::value )
+	void Create( const std::string& name ) {
+		auto value = Type{ };
+
+		Push<Type>( name, value );
 	};
 
 	/**
@@ -370,6 +257,23 @@ public:
 
 private:
 	/**
+	 * PushArguments template method
+	 * @note : Push arguments for function call.
+	 * @template Args : Query parameters types list.
+	 * @param args : Query argument list.
+	 **/
+	template<typename... Args>
+	void PushArguments( Args&&... args ) { 
+		micro_variadic_expand(
+			micro_compile_if( micro::GetCompileLuaType<Args> < MicroLuaTypes::Class )
+				micro::lua_push( m_state, args );
+			micro_compile_else {
+				// TODO(Alves Quentin) : Manage metatable parameter.
+			}
+		);
+	};
+
+	/**
 	 * CallInternal template function
 	 * @note : Internal wrapper for Lua function call.
 	 * @template Args : Query arguments types.
@@ -390,20 +294,7 @@ private:
 		lua_getglobal( m_state, lua_name );
 
 		if ( lua_isfunction( m_state, MICRO_LUA_STACK_TOP ) ) {
-			micro_variadic_expand(
-				constexpr auto lua_type = micro::GetCompileLuaType<Args>;
-
-				micro_compile_if( lua_type == MicroLuaTypes::Boolean )
-					lua_pushboolean( m_state, args );
-				micro_compile_elif( lua_type == MicroLuaTypes::Integer )
-					lua_pushinteger( m_state, (lua_Integer)args );
-				micro_compile_elif( lua_type == MicroLuaTypes::Number )
-					lua_pushnumber( m_state, (lua_Number)args );
-				micro_compile_elif( lua_type == MicroLuaTypes::String )
-					lua_pushstring( m_state, args );
-				micro_compile_elif( lua_type == MicroLuaTypes::Pointer )
-					lua_pushlightuserdata( m_state, micro_cast( args, void* ) );
-			);
+			PushArguments<Args...>( std::forward<Args>( args )... );
 
 			result = lua_pcall( m_state, (uint32_t)( sizeof...( Args ) ), return_count, 0 ) == LUA_OK;
 		}

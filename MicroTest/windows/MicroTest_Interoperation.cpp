@@ -52,6 +52,8 @@ namespace Microsoft::VisualStudio::CppUnitTestFramework {
 			case MicroLuaTypes::Number   : result << "Number";   break;
 			case MicroLuaTypes::Pointer  : result << "Pointer";  break;
 			case MicroLuaTypes::Function : result << "Function"; break;
+			case MicroLuaTypes::Class	 : result << "Class";	 break;
+			case MicroLuaTypes::None	 : result << "None";	 break;
 
 			default : break;
 		}
@@ -91,7 +93,7 @@ namespace UnitTest {
 			Assert::AreEqual( MicroLuaTypes::Boolean , micro::GetLuaType<bool>( ) );
 			Assert::AreEqual( MicroLuaTypes::Pointer , micro::GetLuaType<void*>( ) );
 			Assert::AreEqual( MicroLuaTypes::Pointer , micro::GetLuaType<TestType*>( ) );
-			Assert::AreEqual( MicroLuaTypes::None	 , micro::GetLuaType<TestType>( ) );
+			Assert::AreEqual( MicroLuaTypes::Class	 , micro::GetLuaType<TestType>( ) );
 			Assert::AreEqual( MicroLuaTypes::String  , micro::GetLuaType<micro_string>( ) );
 			Assert::AreEqual( MicroLuaTypes::String  , micro::GetLuaType<std::string>( ) );
 		};
@@ -119,19 +121,49 @@ namespace UnitTest {
 
 			context.Inject( "x = 10 * 4" );
 
-			auto result = context.GetAs<int32_t>( "x" );
-			
-			Assert::AreEqual( 40, result );
+			Assert::AreEqual( 40, context.GetAs<int32_t>( "x" ) );
 		};
 
 		TEST_METHOD( Class ) {
 			auto context = CreateTestContext( { } );
 
+			context.LoadDefaultLibraries( );
 			context.Inject( "l = { }" );
 
-			lua_getglobal( context, "l" );
+			Assert::IsTrue( MicroLuaClass{ context, "l" } );
 
-			Assert::IsTrue( lua_istable( context, MICRO_LUA_STACK_TOP ) );
+			auto k = context.GetAs<MicroLuaClass>( "l" );
+
+			Assert::IsTrue( k );
+		};
+
+		TEST_METHOD( ClassSet ) {
+			auto context = CreateTestContext( { } );
+
+			context.LoadDefaultLibraries( );
+			context.Inject( "l = { a = 10, b = \"Test\" }" );
+
+
+
+			auto lua_class = MicroLuaClass{ context, "l" };
+
+			Assert::AreEqual( MicroLuaTypes::String, lua_class.GetHas( context, "b" ) );
+			Assert::IsTrue( lua_class.Set( context, "a", 40 ) );
+			Assert::IsTrue( lua_class.Set( context, "b", "No" ) );
+			Assert::AreEqual( 40, lua_class.Get( context, "a" ).As<int>( ) );
+			Assert::AreEqual( "No", lua_class.GetAs<micro_string>( context, "b" ) );
+		};
+
+		TEST_METHOD( ClassGet ) {
+			auto context = CreateTestContext( { } );
+
+			context.LoadDefaultLibraries( );
+			context.Inject( "l = { a = 10, b = \"Test\" }" );
+
+			auto lua_class = MicroLuaClass{ context, "l" };
+
+			Assert::IsTrue( lua_class.GetHasField( context, "a" ) );
+			Assert::IsTrue( lua_class.GetHasField( context, "b" ) );
 		};
 
 	};

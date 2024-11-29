@@ -31,7 +31,7 @@
 
 #pragma once
 
-#include "MicroLuaData.h"
+#include "MicroLuaClass.h"
 
 /**
  * MicroLuaValue class final
@@ -51,9 +51,22 @@ public:
 	MicroLuaValue( );
 
 	/**
+	 * Constructor
+	 * @param lua_state : Query Lua state.
+	 **/
+	MicroLuaValue( lua_State* lua_state );
+
+	/**
 	 * Destructor
 	 **/
 	~MicroLuaValue( ) = default;
+
+private:
+	/**
+	 * Constructor
+	 * @param table : Query table name.
+	 **/
+	MicroLuaValue( micro_string table );
 
 public:
 	/**
@@ -83,13 +96,6 @@ public:
 		micro_compile_elif( lua_type == MicroLuaTypes::Function )
 			m_data.Function = data;
 	};
-
-private:
-	/**
-	 * Constructor
-	 * @param lua_state : Query Lua state.
-	 **/
-	MicroLuaValue( lua_State* lua_state );
 
 public:
 	/**
@@ -126,7 +132,9 @@ public:
 		auto result				= Type{ };
 
 		if ( lua_type == m_type ) {
-			micro_compile_if( lua_type == MicroLuaTypes::Boolean )
+			micro_compile_if( std::is_same<MicroLuaClass, Type>::value )
+				result = MicroLuaClass{ micro_cast( m_data.Pointer, micro_string ) };
+			micro_compile_elif( lua_type == MicroLuaTypes::Boolean )
 				result = ( m_data.Integer == 0 );
 			micro_compile_elif( lua_type == MicroLuaTypes::Integer )
 				result = (Type)( m_data.Integer );
@@ -160,3 +168,5 @@ public:
 	};
 
 };
+
+MICRO_LUA_CLASS_GETAS_IMPL;

@@ -39,11 +39,8 @@ MicroLuaValue::MicroLuaValue( )
 	m_data{ }
 { }
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//		===	PRIVATE ===
-////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaValue::MicroLuaValue( lua_State* lua_state ) 
-	: MicroLuaValue{ }
+MicroLuaValue::MicroLuaValue( lua_State* lua_state )
+	: MicroLuaValue{ } 
 {
 	if ( lua_state == NULL )
 		return;
@@ -57,18 +54,31 @@ MicroLuaValue::MicroLuaValue( lua_State* lua_state )
 	} else if ( lua_isnumber( lua_state, MICRO_LUA_STACK_TOP ) ) {
 		m_type = MicroLuaTypes::Number;
 		m_data.Number = lua_tonumber( lua_state, MICRO_LUA_STACK_TOP );
+	} else if ( lua_isstring( lua_state, MICRO_LUA_STACK_TOP ) ) {
+		m_type = MicroLuaTypes::String;
+		m_data.Pointer = micro_cast( lua_tostring( lua_state, MICRO_LUA_STACK_TOP ), void* );
 	} else if ( lua_iscfunction( lua_state, MICRO_LUA_STACK_TOP ) ) {
 		m_type = MicroLuaTypes::Function;
 		m_data.Function = lua_tocfunction( lua_state, MICRO_LUA_STACK_TOP );
-	} else if ( 
+	} else if (
 		lua_isuserdata( lua_state, MICRO_LUA_STACK_TOP ) ||
-		lua_islightuserdata( lua_state, MICRO_LUA_STACK_TOP ) 
+		lua_islightuserdata( lua_state, MICRO_LUA_STACK_TOP )
 	) {
 		m_type = MicroLuaTypes::Pointer;
 		m_data.Pointer = lua_touserdata( lua_state, MICRO_LUA_STACK_TOP );
 	}
 
 	lua_pop( lua_state, 1 );
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PRIVATE ===
+////////////////////////////////////////////////////////////////////////////////////////////
+MicroLuaValue::MicroLuaValue( micro_string table )
+	: m_type{ MicroLuaTypes::Class },
+	m_data{ }
+{
+	m_data.Pointer = micro_cast( table, void* );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

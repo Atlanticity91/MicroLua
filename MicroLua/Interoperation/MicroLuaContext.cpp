@@ -38,6 +38,13 @@ MicroLuaContext::MicroLuaContext( )
 	: m_state{ NULL }
 { }
 
+MicroLuaContext::MicroLuaContext( lua_State* lua_state )
+{ 
+	Terminate( );
+
+	m_state = lua_state;
+}
+
 MicroLuaContext::MicroLuaContext( MicroLuaContext&& other )
 	: m_state{ other.m_state } 
 {
@@ -118,11 +125,12 @@ MicroLuaValue MicroLuaContext::Pop( ) const {
 
 MicroLuaValue MicroLuaContext::Get( const std::string& name ) const {
 	auto* lua_name = name.c_str( );
-	
-	if ( GetIsValid( ) )
-		lua_getglobal( m_state, lua_name );
+	auto lua_type = LUA_TNIL;
 
-	return { m_state };
+	if ( GetIsValid( ) )
+		lua_type = lua_getglobal( m_state, lua_name );
+
+	return ( lua_type != LUA_TTABLE ) ? MicroLuaValue{ m_state } : MicroLuaValue{ lua_name };
 }
 
 MicroLuaClass MicroLuaContext::GetClass( const std::string& name ) const {
