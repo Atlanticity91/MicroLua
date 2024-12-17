@@ -35,7 +35,7 @@
 //		===	PUBLIC ===
 ////////////////////////////////////////////////////////////////////////////////////////////
 MicroLuaClass::MicroLuaClass( )
-	: m_table{ }
+	: m_table{ } 
 { }
 
 MicroLuaClass::MicroLuaClass( lua_State* lua_state, const std::string& name )

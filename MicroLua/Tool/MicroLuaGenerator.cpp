@@ -69,4 +69,32 @@ void MicroLuaGenerator::Run( const MicroReflectSourceDeclaration& declaration ) 
 	file.close( );
 }
 
+/*
+__add => +
+__sub => -
+__mul => *
+__div => /
+__mod => %
+__pow => pow( value, exp ) or 1 ** 2 for python
+__unm => -value
+__idiv => floor( / )
+
+__eq => ==
+__lt => <
+__le => <=
+
+__concat => Lua .. contact operation
+__len    => Lua # length operation
+__index  => Lua index operation
+__gc	 => Lua garbage operation
+
+__band => &
+__bor  => |
+__bxor => ~
+__bnot => !~
+__shl  => <<
+__shr  => >>
+
+*/
+
 #endif

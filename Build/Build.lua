@@ -12,6 +12,7 @@ workspace "Micro Solution"
 		"Dist" 
 	}
 
+	--- GLOBAL FLAGS
 	flags "MultiProcessorCompile"
 	
 	-- Workspace-wide build options for MSVC

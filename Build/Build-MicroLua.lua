@@ -2,23 +2,32 @@ project "MicroLua"
 	kind "StaticLib"
 	language "C++"
 
-	files {
-		"../MicroLua/**.h",
-		"../MicroLua/**.cpp" 
-	}
+	--- OUTPUT
+	targetdir "%{OutputDirs.Bin}/%{cfg.buildcfg}/"
+	debugdir "%{OutputDirs.Bin}/%{cfg.buildcfg}/"
+	objdir "%{OutputDirs.BinInt}/%{prj.name}-%{cfg.buildcfg}"
 
-	targetdir "%{wks.location}/bin/%{cfg.buildcfg}/"
-	objdir "%{wks.location}/bin-int/%{prj.name}-%{cfg.buildcfg}"
-
+	--- GLOBAL INCLUDES
 	includedirs {
-		"%{wks.location}/MicroLua/",
-		"%{IncludeDirs.lua}"
-	}
-	externalincludedirs { 
-		"%{wks.location}/MicroLua/",
-		"%{IncludeDirs.lua}"
+		"%{IncludeDirs.MicroLua}",
+		"%{IncludeDirs.Lua}"
 	}
 
+	externalincludedirs { 
+		"%{IncludeDirs.MicroLua}",
+		"%{IncludeDirs.Lua}"
+	}
+
+	--- PRECOMPILED HEADERS
+	pchheader "__micro_lua_pch.h"
+
+	--- GLOBAL SOURCE FILES
+	files {
+		"%{IncludeDirs.MicroLua}/**.h",
+		"%{IncludeDirs.MicroLua}/**.cpp" 
+	}
+
+	--- GLOBAL LINKS
 	links "Lua"
 
 	--- CONFIGURATION
@@ -45,12 +54,13 @@ project "MicroLua"
 		cppdialect "C++20"
 		staticruntime "off"
 		
+		--- DEFINES
 		defines { 
 			"WINDOWS",
 			"_CRT_SECURE_NO_WARNINGS" 
 		}
-		
-		pchheader "__micro_lua_pch.h"
+
+		--- PRECOMPILED HEADERS
 		pchsource "../MicroLua/__micro_lua_pch.cpp"
 
 	--- LINUX

@@ -1,19 +1,28 @@
 project "Lua"
 	kind "StaticLib"
 	language "C"
-	location "%{wks.location}/Solution/"
+	location "%{OutputDirs.Solution}"
 
-	files { 
-		"%{IncludeDirs.lua}**.h",
-		"%{IncludeDirs.lua}**.c"
+	--- OUTPUT
+	targetdir "%{OutputDirs.Bin}/%{cfg.buildcfg}/"
+	debugdir "%{OutputDirs.Bin}/%{cfg.buildcfg}/"
+	objdir "%{OutputDirs.BinInt}/%{prj.name}-%{cfg.buildcfg}"
+
+	--- GLOBAL INCLUDES
+	includedirs {
+		"%{IncludeDirs.Lua}",
+		"%{IncludeDirs.Lua}lua/"
 	}
 
-	targetdir "%{wks.location}/bin/%{cfg.buildcfg}/"
-	objdir "%{wks.location}/bin-int/%{prj.name}-%{cfg.buildcfg}"
+	externalincludedirs {
+		"%{IncludeDirs.Lua}",
+		"%{IncludeDirs.Lua}lua/"
+	}
 
-	includedirs {
-		"%{IncludeDirs.lua}",
-		"%{IncludeDirs.lua}lua/"
+	--- GLOBAL SOURCE FILES
+	files {
+		"%{IncludeDirs.Lua}**.h",
+		"%{IncludeDirs.Lua}**.c"
 	}
 
 	--- CONFIGURATION
@@ -39,11 +48,15 @@ project "Lua"
 	--- WINDOWS
 	filter "system:windows"
 		systemversion "latest"
-		defines "WINDOWS"
 		cdialect "C17"
 		staticruntime "off"
+
+		--- DEFINES
+		defines { "WINDOWS" }
 
 	--- LINUX
 	filter "system:linux"
 		systemversion "latest"
+
+		--- DEFINES
 		defines { "LINUX" }
