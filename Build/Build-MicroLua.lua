@@ -31,24 +31,6 @@ project "MicroLua"
 	--- GLOBAL LINKS
 	links "Lua"
 
-	--- CONFIGURATION
-	filter "configurations:Debug"
-		defines { "DEBUG" }
-		runtime "Debug"
-		symbols "On"
-
-	filter "configurations:Release"
-		defines { "RELEASE" }
-		runtime "Release"
-		optimize "On"
-		symbols "On"
-
-	filter "configurations:Dist"
-		defines { "DIST" }
-		runtime "Release"
-		optimize "On"
-		symbols "Off"
-
 	--- WINDOWS
 	filter "system:windows"
 		systemversion "latest"
@@ -68,3 +50,21 @@ project "MicroLua"
 	filter "system:linux"
 		systemversion "latest"
 		defines { "LINUX" }
+
+	--- CONFIGURATION
+	filter "configurations:Debug"
+		defines { "DEBUG" }
+		runtime "Debug"
+		symbols "On"
+
+	filter "configurations:Release"
+		defines { "RELEASE" }
+		runtime "Release"
+		optimize "On"
+		symbols "On"
+
+	filter "configurations:Dist"
+		defines { "DIST" }
+		runtime "Release"
+		optimize "On"
+		symbols "Off"

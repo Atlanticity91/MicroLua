@@ -25,26 +25,6 @@ project "Lua"
 		"%{IncludeDirs.Lua}**.c"
 	}
 
-	--- CONFIGURATION
-	filter "configurations:Debug"
-		defines { "DEBUG" }
-		runtime "Debug"
-		symbols "On"
-
-		defines "LUA_USE_APICHECK"
-
-	filter "configurations:Release"
-		defines { "RELEASE" }
-		runtime "Release"
-		optimize "On"
-		symbols "On"
-
-	filter "configurations:Dist"
-		defines { "DIST" }
-		runtime "Release"
-		optimize "On"
-		symbols "Off"
-
 	--- WINDOWS
 	filter "system:windows"
 		systemversion "latest"
@@ -60,3 +40,24 @@ project "Lua"
 
 		--- DEFINES
 		defines { "LINUX" }
+
+	--- CONFIGURATION
+	filter "configurations:Debug"
+		defines { "DEBUG" }
+		runtime "Debug"
+		symbols "On"
+
+		--- DEFINES
+		defines "LUA_USE_APICHECK"
+
+	filter "configurations:Release"
+		defines { "RELEASE" }
+		runtime "Release"
+		optimize "On"
+		symbols "On"
+
+	filter "configurations:Dist"
+		defines { "DIST" }
+		runtime "Release"
+		optimize "On"
+		symbols "Off"
