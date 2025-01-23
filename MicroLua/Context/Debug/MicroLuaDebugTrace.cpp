@@ -7,7 +7,7 @@
  *
  * MIT License
  *
- * Copyright (c) 2024 Alves Quentin
+ * Copyright (c) 2024- Alves Quentin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,24 +29,35 @@
  *
  **/
 
-#pragma once
+#include "__micro_lua_pch.h"
 
-#include "MicroLuaValue.h"
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PUBLIC ===
+////////////////////////////////////////////////////////////////////////////////////////////
+MicroLuaDebugTrace::MicroLuaDebugTrace( )
+	: StepMode{ false },
+	Breakpoints{ } 
+{ }
 
-/**
- * MicroLuaMetaField struct
- * @note : Represent Lua metatable field.
- **/
-micro_struct MicroLuaMetaField {
+void MicroLuaDebugTrace::AddBreakpoint( const MicroLuaDebugBreakpoint& breakpoint ) {
+	if ( Breakpoints.find( breakpoint.FileName ) == Breakpoints.end( ) ) {
+		auto pair = std::make_pair( breakpoint.FileName, std::vector<uint32_t>{ 1 } );
 
-	micro_string Name;
-	MicroLuaTypes Type;
+		Breakpoints.emplace( std::move( pair ) );
+	}
 
-	/**
-	 * Constructor
-	 * @param name : Query field name.
-	 * @param value : Query field value.
-	 **/
-	MicroLuaMetaField( micro_string name, const MicroLuaTypes type );
+	Breakpoints[ breakpoint.FileName ].emplace_back( breakpoint.FileLine );
+}
 
-};
+void MicroLuaDebugTrace::RemoveBreakpoint( const MicroLuaDebugBreakpoint& breakpoint ) {
+	auto pair = Breakpoints.find( breakpoint.FileName );
+
+	if ( pair != Breakpoints.end( ) ) {
+		auto iterator_first = pair->second.begin( );
+		auto iterator_last  = pair->second.end( );
+		auto iterator		= std::find( iterator_first, iterator_last, breakpoint.FileLine );
+
+		if ( iterator < pair->second.end( ) )
+			pair->second.erase( iterator );
+	}
+}

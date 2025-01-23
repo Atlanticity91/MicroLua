@@ -7,7 +7,7 @@
  *
  * MIT License
  *
- * Copyright (c) 2024 Alves Quentin
+ * Copyright (c) 2024- Alves Quentin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,41 +31,41 @@
 
 #pragma once
 
-#include "../Interoperation/MicroLuaContext.h"
+#include "../Utils/MicroLuaData.h"
 
-#ifdef MICRO_USE_CORE
 /**
- * MicroLuaGenerator class final
- * @note : Defined reflection system default Lua emitter.
+ * MicroLuaMetaField struct
+ * @note : Represent Lua metatable field.
  **/
-micro_class MicroLuaGenerator final : public MicroReflectEmitter {
+micro_struct MicroLuaMetaField {
 
-public:
+	micro_string Name;
+	MicroLuaTypes Type;
+
 	/**
 	 * Constructor
 	 **/
-	MicroLuaGenerator( );
+	MicroLuaMetaField( );
 
 	/**
-	 * Destructor
+	 * Constructor
+	 * @param name : Query field name.
+	 * @param value : Query field value.
 	 **/
-	virtual ~MicroLuaGenerator( ) = default;
+	MicroLuaMetaField( micro_string name, const MicroLuaTypes type );
 
 	/**
-	 * PreRun method
-	 * @note : Executed after declaration generation, used to manually add
-	 *		   declaration to the source.
-	 * @param declaration : Current source declaration.
+	 * GetIsValid const function
+	 * @note : Get if field is valid.
+	 * @return : True when lua field is valid.
 	 **/
-	virtual void PreRun( MicroReflectSourceDeclaration& declaration ) override;
+	bool GetIsValid( ) const;
 
 	/**
-	 * Run method
-	 * @note : Generator run execution.
-	 * @param declaration : Reference to query declaration.
+	 * Cast operator
+	 * @note : Get if field is valid.
+	 * @return : Return GetIsValid( ) call value.
 	 **/
-	virtual void Run( const MicroReflectSourceDeclaration& declaration ) override;
+	operator bool( ) const;
 
 };
-
-#endif

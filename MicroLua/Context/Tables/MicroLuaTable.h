@@ -7,7 +7,7 @@
  *
  * MIT License
  *
- * Copyright (c) 2024 Alves Quentin
+ * Copyright (c) 2024- Alves Quentin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,15 +31,15 @@
 
 #pragma once
 
-#include "MicroLuaData.h"
+#include "MicroLuaMetatableStorage.h"
 
 /**
  * MICRO_LUA_CLASS_GETAS_IMPL macro
- * @note : Wrapper for GetAs implementation of MicroLuaClass.
+ * @note : Wrapper for GetAs implementation of MicroLuaTable.
  **/
 #define MICRO_LUA_CLASS_GETAS_IMPL\
 	template<typename Type>\
-	Type MicroLuaClass::GetAs( lua_State* lua_state, const std::string& name ) {\
+	Type MicroLuaTable::GetAs( lua_State* lua_state, const std::string& name ) {\
 		auto lua_value = Get( lua_state, name );\
 		return lua_value.As<Type>( );\
 	}
@@ -51,10 +51,10 @@
 class MicroLuaValue;
 
 /**
- * MicroLuaClass final class
+ * MicroLuaTable final class
  * @note : Defined C++ representation of Lua table.
  **/
-micro_class MicroLuaClass final {
+micro_class MicroLuaTable final {
 
 	friend class MicroLuaValue;
 
@@ -65,32 +65,32 @@ public:
 	/**
 	 * Constructor
 	 **/
-	MicroLuaClass( );
+	MicroLuaTable( );
 
 	/**
 	 * Constructor
 	 * @param lua_state : Query Lua state.
 	 * @param name : Query table name.
 	 **/
-	MicroLuaClass( lua_State* lua_state, const std::string& name );
+	MicroLuaTable( lua_State* lua_state, const std::string& name );
 
 	/**
 	 * Move-Constructor
 	 * @param other : Query class to move.
 	 **/
-	MicroLuaClass( MicroLuaClass&& other );
+	MicroLuaTable( MicroLuaTable&& other ) noexcept;
 
 	/**
 	 * Destructor
 	 **/
-	~MicroLuaClass( ) = default;
+	~MicroLuaTable( ) = default;
 
 private:
 	/**
 	 * Constructor
 	 * @param name : Query table name.
 	 **/
-	MicroLuaClass( micro_string name );
+	MicroLuaTable( micro_string name );
 
 public:
 	/**
@@ -227,6 +227,6 @@ public:
 	 * @param other : Query other class.
 	 * @return : Reference to current class.
 	 **/
-	MicroLuaClass& operator=( MicroLuaClass&& other );
+	MicroLuaTable& operator=( MicroLuaTable&& other );
 
 };

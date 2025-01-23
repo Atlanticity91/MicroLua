@@ -31,4 +31,37 @@
 
 #pragma once
 
-#include "MicroLuaManager.h"
+#include "MicroLuaContext.h"
+
+class MicroLuaContextManager final { 
+
+private:
+    std::mutex m_mutex;
+    std::vector<MicroLuaContext> m_context;
+
+public:
+    MicroLuaContextManager( );
+
+    ~MicroLuaContextManager( );
+
+    bool Create( const uint32_t thread_count );
+
+    bool LoadDefaultLibraries( );
+    bool LoadLibrary( lua_CFunction lua_library );
+    bool LoadLibraries( std::initializer_list<lua_CFunction> libraries );
+
+    bool Inject( const std::string lua_source );
+    bool InjectFile( const std::string& file_path );
+
+    uint32_t Acquire( );
+
+    void Release( const uint32_t context_handle );
+
+    void Terminate( );
+
+public:
+    bool GetExist( const uint32_t context_handle ) const;
+
+    MicroLuaContext* GetContext( const uint32_t context_handle );
+
+};

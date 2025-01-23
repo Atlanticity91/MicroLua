@@ -31,4 +31,23 @@
 
 #pragma once
 
-#include "MicroLuaManager.h"
+#include "../Context/MicroLuaContextManager.h"
+
+class MicroLuaPreprocessor final { 
+
+private:
+    lua_State* m_local_state;
+
+public:
+    MicroLuaPreprocessor( );
+
+    ~MicroLuaPreprocessor( );
+
+    bool Create( );
+
+    void Terminate( );
+
+public:
+    bool GetIsValid( ) const;
+
+};

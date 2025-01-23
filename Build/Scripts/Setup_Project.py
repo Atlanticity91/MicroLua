@@ -18,7 +18,9 @@ FILE_EXT = [
 FOLDERS = [
 	'bin',
 	'bin-int',
-	'Solution'
+	'Solution',
+	'.vs',
+	'.vscode'
 ]
 
 # ---

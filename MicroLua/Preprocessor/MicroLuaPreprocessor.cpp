@@ -29,6 +29,25 @@
  * 
  **/
 
-#pragma once
+#include "__micro_lua_pch.h"
 
-#include "MicroLuaManager.h"
+MicroLuaPreprocessor::MicroLuaPreprocessor( ) 
+    : m_local_state{ NULL }
+{ }
+
+MicroLuaPreprocessor::~MicroLuaPreprocessor( ) {
+}
+
+bool MicroLuaPreprocessor::Create( ) {
+    return GetIsValid( );
+}
+
+void MicroLuaPreprocessor::Terminate( ) {
+    if ( GetIsValid( ) ) {
+        m_local_state = NULL;
+    }
+}
+
+bool MicroLuaPreprocessor::GetIsValid( ) const {
+    return ( m_local_state != NULL );
+}

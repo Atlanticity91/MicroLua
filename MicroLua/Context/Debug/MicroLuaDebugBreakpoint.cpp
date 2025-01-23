@@ -7,7 +7,7 @@
  *
  * MIT License
  *
- * Copyright (c) 2024 Alves Quentin
+ * Copyright (c) 2024- Alves Quentin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,64 +29,19 @@
  *
  **/
 
-#pragma once
+#include "__micro_lua_pch.h"
 
-#include "MicroLuaMetaField.h"
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PUBLIC ===
+////////////////////////////////////////////////////////////////////////////////////////////
+MicroLuaDebugBreakpoint::MicroLuaDebugBreakpoint( )
+	: MicroLuaDebugBreakpoint{ "", 0 }
+{ }
 
-#define MICRO_REFLECT_LUA( )\
-	template<class T>\
-	friend micro::MicroLuaMetatable* micro::GetLuaMetatable( ) noexcept;
-
-/**
- * MicroLuaMetatable struct
- * @note : Represent Lua metatable.
- **/
-micro_struct MicroLuaMetatable {
-
-	micro_string Name;
-	MicroLuaMetaField* FieldFirst;
-	MicroLuaMetaField* FieldLast;
-
-	/**
-	 * Constructor
-	 * @param name : Query metatable name.
-	 **/
-	MicroLuaMetatable( micro_string name );
-
-	/**
-	 * GetCount const function
-	 * @note : Get field count.
-	 * @return : Return field count value.
-	 **/
-	uint32_t GetCount( ) const;
-
-	/**
-	 * begin function
-	 * @note : Get first element.
-	 * @return : Return first element value.
-	 **/
-	MicroLuaMetaField* begin( );
-
-	/**
-	 * end function
-	 * @note : Get end element.
-	 * @return : Return end element value.
-	 **/
-	MicroLuaMetaField* end( );
-
-};
-
-namespace micro {
-
-	/**
-	 * GetLuaMetatable function
-	 * @note : Get metatable instance of type T.
-	 * @template T : Query type.
-	 * @return : Return metatable of T.
-	 **/
-	template<class T>
-	const MicroLuaMetatable* GetLuaMetatable( ) noexcept {
-		return nullptr;
-	};
-
-};
+MicroLuaDebugBreakpoint::MicroLuaDebugBreakpoint( 
+	const std::string& name, 
+	const uint32_t line 
+)
+	: FileName{ std::move( name ) },
+	FileLine{ line }
+{ }

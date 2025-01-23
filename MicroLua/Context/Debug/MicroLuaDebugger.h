@@ -7,7 +7,7 @@
  *
  * MIT License
  *
- * Copyright (c) 2024 Alves Quentin
+ * Copyright (c) 2024- Alves Quentin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,12 +29,60 @@
  *
  **/
 
-#include <__micro_lua_pch.h>
+#pragma once
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//		===	PUBLIC ===
-////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaMetaField::MicroLuaMetaField( micro_string name, const MicroLuaTypes type )
-	: Name{ name },
-	Type{ type }
-{ }
+#include "MicroLuaDebugTrace.h"
+
+class MicroLuaDebugger final { 
+
+private:
+	lua_Hook m_hook;
+	uint32_t m_flags;
+	MicroLuaDebugTrace m_trace;
+
+public:
+	MicroLuaDebugger( );
+
+	~MicroLuaDebugger( ) = default;
+
+	void Set( lua_Hook hook );
+
+	void Set( lua_Hook hook, const uint32_t flags );
+
+	void Add( const uint32_t flags );
+
+	void Remove( const uint32_t flags );
+
+	void AddBreakpoint( const MicroLuaDebugBreakpoint& breakpoint );
+
+	void AddBreakpoint( const std::string& name, const uint32_t line );
+
+	void RemoveBreakpoint( const MicroLuaDebugBreakpoint& breakpoint );
+
+	void RemoveBreakpoint( const std::string& name, const uint32_t line );
+
+	void Enable( lua_State* lua_state );
+
+	void Disable( lua_State* lua_state );
+
+public:
+	static bool GetHookIsBreakpoint(
+		lua_Debug* lua_debug, 
+		MicroLuaDebugTrace* trace 
+	);
+
+	static void SendHookMessage( lua_Debug* lua_debug );
+
+	static void ParseHookResponse( MicroLuaDebugTrace* trace );
+
+private:
+	static void DebugHook( lua_State* lua_state, lua_Debug* lua_debug );
+
+public:
+	lua_Hook GetHook( ) const;
+
+	uint32_t GetFlags( ) const;
+
+	MicroLuaDebugTrace& GetTrace( );
+
+};

@@ -7,7 +7,7 @@
  *
  * MIT License
  *
- * Copyright (c) 2024 Alves Quentin
+ * Copyright (c) 2024- Alves Quentin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
  *
  **/
 
-#include <__micro_lua_pch.h>
+#include "__micro_lua_pch.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC ===
@@ -66,32 +66,57 @@ MicroLuaValue::MicroLuaValue( lua_State* lua_state )
 	) {
 		m_type = MicroLuaTypes::Pointer;
 		m_data.Pointer = lua_touserdata( lua_state, MICRO_LUA_STACK_TOP );
+	} else if ( lua_istable( lua_state, MICRO_LUA_STACK_TOP ) ) {
+		m_type = MicroLuaTypes::Class;
+		// TODO( ALVES Quentin ) : MANAGE TABLE
 	}
 
 	lua_pop( lua_state, 1 );
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//		===	PRIVATE ===
-////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaValue::MicroLuaValue( micro_string table )
-	: m_type{ MicroLuaTypes::Class },
-	m_data{ }
+MicroLuaValue::MicroLuaValue( const MicroLuaValue& other )
+	: MicroLuaValue{ }
 {
-	m_data.Pointer = micro_cast( table, void* );
+	m_type = other.m_type;
+	m_data = other.m_data;
+}
+
+MicroLuaValue::MicroLuaValue( MicroLuaValue&& other ) noexcept
+	: MicroLuaValue{ }
+{
+	m_type = other.m_type;
+	m_data = other.m_data;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC GET ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaTypes MicroLuaValue::GetType( ) const {
-	return m_type;
-}
-
 bool MicroLuaValue::GetHasValue( ) const {
 	return m_type != MicroLuaTypes::None;
 }
 
+MicroLuaTypes MicroLuaValue::GetType( ) const {
+	return m_type;
+}
+
+const MicroLuaData& MicroLuaValue::GetData( ) const {
+	return m_data;
+}
+
 bool MicroLuaValue::Is( const MicroLuaTypes lua_type ) const {
 	return m_type == lua_type;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	OPERATOR ===
+////////////////////////////////////////////////////////////////////////////////////////////
+MicroLuaValue::operator bool ( ) const {
+	return GetHasValue( );
+}
+
+MicroLuaValue& MicroLuaValue::operator=( const MicroLuaValue& other ) {
+	m_type = other.m_type;
+	m_data = other.m_data;
+
+	return micro_self;
 }

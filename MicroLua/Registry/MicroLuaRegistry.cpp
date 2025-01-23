@@ -1,10 +1,10 @@
 /** 
  * 
- *  __  __ _            _             
+ *  __  __ _            _
  * |  \/  (_)__ _ _ ___| |  _  _ __ _ 
  * | |\/| | / _| '_/ _ \ |_| || / _` |
- * |_|  |_|_\__|_| \___/____\_,_\__,_|                                  
- *                                      
+ * |_|  |_|_\__|_| \___/____\_,_\__,_|
+ * 
  * MIT License
  *
  * Copyright (c) 2024- Alves Quentin
@@ -29,6 +29,26 @@
  * 
  **/
 
-#pragma once
+#include "__micro_lua_pch.h"
 
-#include "MicroLuaManager.h"
+MicroLuaRegistry::MicroLuaRegistry( )
+{ }
+
+MicroLuaRegistry::~MicroLuaRegistry( ) {
+}
+
+bool MicroLuaRegistry::UnRegister( const std::string& name ) {
+    return false;
+}
+
+bool MicroLuaRegistry::Load( const std::string& name, const std::string& path ) {
+    return false;
+}
+
+bool MicroLuaRegistry::UnLoad( const std::string& name ) {
+    return false;
+}
+
+bool MicroLuaRegistry::GetExist( const std::string& name ) const {
+    return false;
+}

@@ -31,4 +31,31 @@
 
 #pragma once
 
-#include "MicroLuaManager.h"
+#include "../../Utils/MicroCore.h"
+
+class MicroLuaStackGuard final {
+
+private:
+    lua_State* m_lua_state;
+    uint32_t m_lua_pointer;
+
+public:
+    /**
+     * Constructor
+     **/
+    MicroLuaStackGuard( ) = delete;
+
+    /**
+     * Constructor
+     * @param lua_state : 
+     **/
+    MicroLuaStackGuard( lua_State* lua_state );
+    
+    /**
+     * Destructor
+     **/
+    ~MicroLuaStackGuard( );
+
+    MicroLuaStackGuard& operator=( const MicroLuaStackGuard& ) = delete;
+
+};

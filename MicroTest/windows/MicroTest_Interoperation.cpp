@@ -98,22 +98,23 @@ namespace UnitTest {
 			Assert::AreEqual( MicroLuaTypes::String  , micro::GetLuaType<std::string>( ) );
 		};
 
-		TEST_METHOD( Call ) { 
+		TEST_METHOD( Invoke ) {
 			auto context = CreateTestContext( { } );
 			
 			context.LoadDefaultLibraries( );
 			context.Inject( "function m( a )\nprint( a )\nend\n" );
 
-			Assert::IsTrue( context.Call( "m", 10 ) );
+			Assert::IsTrue( context.Invoke( "m", 10 ) );
 		};
 
-		TEST_METHOD( CallParams ) {
+		TEST_METHOD( InvokeParams ) {
 			auto context = CreateTestContext( { } );
 
 			context.LoadDefaultLibraries( );
 			context.Inject( "function add( a, b )\nreturn a + b\nend\n" );
-			
-			Assert::AreEqual( 9, context.CallFunction<int>( "add", 5, 4 ) );
+
+			Assert::IsTrue( context.Invoke( "add", 1, 5, 4 ) );
+			Assert::AreEqual( 9, context.PopReturns( )[ 0 ].As<int32_t>( ) );
 		};
 
 		TEST_METHOD( GetAs ) {
@@ -121,7 +122,7 @@ namespace UnitTest {
 
 			context.Inject( "x = 10 * 4" );
 
-			Assert::AreEqual( 40, context.GetAs<int32_t>( "x" ) );
+			Assert::AreEqual( 40, context.PopAs<int32_t>( "x" ) );
 		};
 
 		TEST_METHOD( Class ) {
@@ -130,11 +131,7 @@ namespace UnitTest {
 			context.LoadDefaultLibraries( );
 			context.Inject( "l = { }" );
 
-			Assert::IsTrue( MicroLuaClass{ context, "l" } );
-
-			auto k = context.GetAs<MicroLuaClass>( "l" );
-
-			Assert::IsTrue( k );
+			Assert::IsTrue( MicroLuaTable{ context, "l" } );
 		};
 
 		TEST_METHOD( ClassSet ) {
@@ -143,9 +140,7 @@ namespace UnitTest {
 			context.LoadDefaultLibraries( );
 			context.Inject( "l = { a = 10, b = \"Test\" }" );
 
-
-
-			auto lua_class = MicroLuaClass{ context, "l" };
+			auto lua_class = MicroLuaTable{ context, "l" };
 
 			Assert::AreEqual( MicroLuaTypes::String, lua_class.GetHas( context, "b" ) );
 			Assert::IsTrue( lua_class.Set( context, "a", 40 ) );
@@ -160,10 +155,24 @@ namespace UnitTest {
 			context.LoadDefaultLibraries( );
 			context.Inject( "l = { a = 10, b = \"Test\" }" );
 
-			auto lua_class = MicroLuaClass{ context, "l" };
+			auto lua_class = MicroLuaTable{ context, "l" };
 
 			Assert::IsTrue( lua_class.GetHasField( context, "a" ) );
 			Assert::IsTrue( lua_class.GetHasField( context, "b" ) );
+		};
+
+		TEST_METHOD( MultiContext ) {
+			MicroLuaContextManager m{ };
+
+			m.Create( 2 );
+
+			m.Inject( "a = 40" );
+
+			auto c = m.Acquire( );
+			auto t = m.Acquire( );
+
+			auto* tc = m.GetContext( t );
+			Assert::AreEqual( 40, tc->PopAs<int32_t>( "a" ) );
 		};
 
 	};

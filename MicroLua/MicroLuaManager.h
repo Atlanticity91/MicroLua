@@ -31,4 +31,45 @@
 
 #pragma once
 
-#include "MicroLuaManager.h"
+#include "Registry/MicroLuaRegistry.h"
+
+class MicroLuaManager final {
+
+private:
+    MicroLuaPreprocessor m_preprocessor;
+    MicroLuaRegistry m_registry;
+    MicroLuaContextManager m_context;
+
+public:
+    MicroLuaManager( );
+
+    ~MicroLuaManager( );
+
+    bool Create( const uint32_t thread_count = 1 );
+    
+    bool UnRegister( const std::string& name );
+
+    bool Load( const std::string& name, const std::string& path );
+    bool UnLoad( const std::string& name );
+
+    uint32_t Acquire( );
+    void Release( uint32_t& context_handle );
+
+    void Terminate( );
+
+public:
+    template<typename Type>
+    bool Register( const std::string& name, const Type& value ) {
+        return m_registry.Register<Type>( name, value );
+    };
+
+public:
+    bool GetExist( const std::string& name ) const;
+
+public:
+    template<typename Type>
+    Type Get( const std::string& name ) const {
+        return m_registry.Get<Type>( name );
+    };
+
+};

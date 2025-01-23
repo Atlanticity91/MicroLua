@@ -1,10 +1,10 @@
 /** 
  * 
- *  __  __ _            _             
+ *  __  __ _            _
  * |  \/  (_)__ _ _ ___| |  _  _ __ _ 
  * | |\/| | / _| '_/ _ \ |_| || / _` |
- * |_|  |_|_\__|_| \___/____\_,_\__,_|                                  
- *                                      
+ * |_|  |_|_\__|_| \___/____\_,_\__,_|
+ * 
  * MIT License
  *
  * Copyright (c) 2024- Alves Quentin
@@ -31,4 +31,36 @@
 
 #pragma once
 
-#include "MicroLuaManager.h"
+#include "Libraries/MicroLuaLibraryManager.h"
+
+class MicroLuaRegistry final { 
+
+public:
+    MicroLuaRegistry( );
+
+    ~MicroLuaRegistry( );
+
+    bool UnRegister( const std::string& name );
+
+    bool Load( const std::string& name, const std::string& path );
+    
+    bool UnLoad( const std::string& name );
+
+public:
+    template<typename Type>
+    bool Register( const std::string& name, const Type& value ) {
+        return false;
+    };
+
+public:
+    bool GetExist( const std::string& name ) const;
+
+public:
+    template<typename Type>
+    Type Get( const std::string& name ) const {
+        auto value = Type{ };
+
+        return std::move( value );
+    };
+
+};

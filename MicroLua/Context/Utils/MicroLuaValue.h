@@ -7,7 +7,7 @@
  *
  * MIT License
  *
- * Copyright (c) 2024 Alves Quentin
+ * Copyright (c) 2024- Alves Quentin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@
 
 #pragma once
 
-#include "MicroLuaClass.h"
+#include "../Tables/MicroLuaTable.h"
 
 /**
  * MicroLuaValue class final
@@ -57,16 +57,21 @@ public:
 	MicroLuaValue( lua_State* lua_state );
 
 	/**
+	 * Copy-Constructor
+	 * @param other : Query value to move.
+	 **/
+	MicroLuaValue( const MicroLuaValue& other );
+
+	/**
+	 * Move-Constructor
+	 * @param other : Query value to move.
+	 **/
+	MicroLuaValue( MicroLuaValue&& other ) noexcept;
+
+	/**
 	 * Destructor
 	 **/
 	~MicroLuaValue( ) = default;
-
-private:
-	/**
-	 * Constructor
-	 * @param table : Query table name.
-	 **/
-	MicroLuaValue( micro_string table );
 
 public:
 	/**
@@ -76,7 +81,7 @@ public:
 	 **/
 	template<typename Type>
 	MicroLuaValue( const Type& data )
-		: m_data{ }
+		: MicroLuaValue{ }
 	{
 		constexpr auto lua_type = micro::GetCompileLuaType<Type>;
 		
@@ -95,21 +100,26 @@ public:
 			m_data.Pointer = micro_cast( data, void* );
 		micro_compile_elif( lua_type == MicroLuaTypes::Function )
 			m_data.Function = data;
+		micro_compile_elif( lua_type == MicroLuaTypes::Class ) {
+			// TODO( ALVES Quentin ) : Implement class support.
+		}
 	};
 
 public:
-	/**
-	 * GetType const function
-	 * @note : Get Lua type.
-	 **/
-	MicroLuaTypes GetType( ) const;
-
 	/**
 	 * GetHasValue const function
 	 * @note : Get if value is valid.
 	 * @return : Return if value is valid.
 	 **/
 	bool GetHasValue( ) const;
+
+	/**
+	 * GetType const function
+	 * @note : Get Lua type.
+	 **/
+	MicroLuaTypes GetType( ) const;
+
+	const MicroLuaData& GetData( ) const;
 
 	/**
 	 * Is const function
@@ -127,13 +137,13 @@ public:
 	 * @return : Return data casted as Type.
 	 **/
 	template<typename Type>
-	Type As( ) {
+	Type As( ) const {
 		constexpr auto lua_type = micro::GetCompileLuaType<Type>;
 		auto result				= Type{ };
 
-		if ( lua_type == m_type ) {
-			micro_compile_if( std::is_same<MicroLuaClass, Type>::value )
-				result = MicroLuaClass{ micro_cast( m_data.Pointer, micro_string ) };
+		if ( m_type == lua_type ) {
+			micro_compile_if( std::is_same<MicroLuaTable, Type>::value )
+				result = MicroLuaTable{ micro_cast( m_data.Pointer, micro_string ) };
 			micro_compile_elif( lua_type == MicroLuaTypes::Boolean )
 				result = ( m_data.Integer == 0 );
 			micro_compile_elif( lua_type == MicroLuaTypes::Integer )
@@ -161,11 +171,16 @@ public:
 	 * @return : Return Is( ) call value. 
 	 **/
 	template<typename Type>
-	micro_inline bool Is( ) const {
+	bool Is( ) const {
 		const auto lua_type = micro::GetLuaType<Type>( );
 
 		return Is( lua_type );
 	};
+
+public:
+	operator bool ( ) const;
+	
+	MicroLuaValue& operator=( const MicroLuaValue& other );
 
 };
 

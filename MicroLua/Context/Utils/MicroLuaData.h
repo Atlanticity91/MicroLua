@@ -7,7 +7,7 @@
  *
  * MIT License
  *
- * Copyright (c) 2024 Alves Quentin
+ * Copyright (c) 2024- Alves Quentin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,28 +29,19 @@
  *
  **/
 
-#include <__micro_lua_pch.h>
+#pragma once
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//		===	PUBLIC ===
-////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaMetatable::MicroLuaMetatable( micro_string name )
-	: Name{ name },
-	FieldFirst{ nullptr },
-	FieldLast{ nullptr }
-{ }
+#include "MicroLuaTypes.h"
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//		===	PUBLIC GET ===
-////////////////////////////////////////////////////////////////////////////////////////////
-uint32_t MicroLuaMetatable::GetCount( ) const {
-	return (uint32_t)(FieldLast - FieldFirst );
-}
+/**
+ * MicroLuaData union
+ * @note : Wrapper for all lua types.
+ **/
+union MicroLuaData {
 
-MicroLuaMetaField* MicroLuaMetatable::begin( ) {
-	return FieldFirst;
-}
+	lua_Integer Integer;
+	lua_Number Number;
+	lua_CFunction Function;
+	void* Pointer;
 
-MicroLuaMetaField* MicroLuaMetatable::end( ) {
-	return FieldLast;
-}
+};

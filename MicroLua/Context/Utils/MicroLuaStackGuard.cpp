@@ -29,6 +29,18 @@
  * 
  **/
 
-#pragma once
+#include "__micro_lua_pch.h"
 
-#include "MicroLuaManager.h"
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PUBLIC ===
+////////////////////////////////////////////////////////////////////////////////////////////
+MicroLuaStackGuard::MicroLuaStackGuard( lua_State* lua_state ) 
+    : m_lua_state{ lua_state },
+    m_lua_pointer{ 0 }
+{
+    m_lua_pointer = lua_gettop( lua_state );
+}
+
+MicroLuaStackGuard::~MicroLuaStackGuard( ) {
+    lua_settop( m_lua_state, m_lua_pointer );
+}

@@ -7,7 +7,7 @@
  *
  * MIT License
  *
- * Copyright (c) 2024 Alves Quentin
+ * Copyright (c) 2024- Alves Quentin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,36 +31,34 @@
 
 #pragma once
 
-#include "MicroLuaMetatable.h"
+#include "MicroLuaDebugPipeErrors.h"
 
-template<typename Type, uint32_t FieldCount>
-struct MicroLuaMetatableStorage {
+class MicroLuaDebugPipe final {
 
-	MicroLuaMetaField Fields[ micro_array_size<FieldCount> ];
-	MicroLuaMetatable Detail;
+private:
+#	ifdef _MSC_VER
+	static SOCKET m_socket;
+#	endif
 
-	/**
-	 * Constructor
-	 * @param name : Query metatable name.
-	 * @param lambda : Query construction lambda.
-	 **/
-	template<typename Lambda>
-	MicroLuaMetatableStorage( micro_string name, Lambda&& lambda )
-		: Detail{ name } 
-	{
-		std::invoke( lambda, this );
+public:
+	MicroLuaDebugPipe( ) = delete;
 
-		Detail.FieldFirst = Fields;
-		Detail.FieldLast  = ( Fields + FieldCount );
-	};
+	MicroLuaDebugPipe( const MicroLuaDebugPipe& ) = delete;
 
-	/**
-	 * Cast operator
-	 * @note : Get pointer to metatable detail.
-	 * @return : Return pointer to Lua metatable detail.
-	 **/
-	operator MicroLuaMetatable* ( ) {
-		return micro_ptr( Detail );
-	};
+	static MicroLuaDebugPipeErrors Create( 
+		const MicroLuaDebugPipeSpecificaton& specification 
+	);
+
+	static void Write( const std::string& message );
+
+	static bool Read( char* buffer, const uint32_t length );
+
+	static MicroLuaDebugPipeErrors Terminate( );
+
+public:
+	static bool GetIsValid( );
+
+public:
+	MicroLuaDebugPipe& operator=( const MicroLuaDebugPipe& ) = delete;
 
 };

@@ -7,7 +7,7 @@
  *
  * MIT License
  *
- * Copyright (c) 2024 Alves Quentin
+ * Copyright (c) 2024- Alves Quentin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,17 +29,17 @@
  *
  **/
 
-#include <__micro_lua_pch.h>
+#include "__micro_lua_pch.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaClass::MicroLuaClass( )
+MicroLuaTable::MicroLuaTable( )
 	: m_table{ } 
 { }
 
-MicroLuaClass::MicroLuaClass( lua_State* lua_state, const std::string& name )
-	: MicroLuaClass{ }
+MicroLuaTable::MicroLuaTable( lua_State* lua_state, const std::string& name )
+	: MicroLuaTable{ }
 { 
 	if ( lua_state == NULL )
 		return;
@@ -54,21 +54,21 @@ MicroLuaClass::MicroLuaClass( lua_State* lua_state, const std::string& name )
 	lua_pop( lua_state, 1 );
 }
 
-MicroLuaClass::MicroLuaClass( MicroLuaClass&& other )
+MicroLuaTable::MicroLuaTable( MicroLuaTable&& other ) noexcept
 	: m_table{ std::move( other ) }
 { }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PRIVATE ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaClass::MicroLuaClass( micro_string name )
+MicroLuaTable::MicroLuaTable( micro_string name )
 	: m_table{ name }
 { }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PRIVATE ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-void MicroLuaClass::PopFront( lua_State* lua_state, const std::string& name ) {
+void MicroLuaTable::PopFront( lua_State* lua_state, const std::string& name ) {
 	auto* lua_table = m_table.c_str( ); 
 	auto* lua_name = name.c_str( );
 
@@ -80,11 +80,11 @@ void MicroLuaClass::PopFront( lua_State* lua_state, const std::string& name ) {
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC GET ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-bool MicroLuaClass::GetIsValid( ) const { 
+bool MicroLuaTable::GetIsValid( ) const {
 	return !m_table.empty( );
 }
 
-MicroLuaTypes MicroLuaClass::GetHas( lua_State* lua_state, const std::string& name ) {
+MicroLuaTypes MicroLuaTable::GetHas( lua_State* lua_state, const std::string& name ) {
 	auto result = MicroLuaTypes::None;
 
 	if ( lua_state != NULL && GetIsValid( ) ) {
@@ -114,22 +114,22 @@ MicroLuaTypes MicroLuaClass::GetHas( lua_State* lua_state, const std::string& na
 	return result;
 }
 
-bool MicroLuaClass::GetHasField( lua_State* lua_state, const std::string& name ) {
+bool MicroLuaTable::GetHasField( lua_State* lua_state, const std::string& name ) {
 	return GetHas( lua_state, name ) < MicroLuaTypes::Function;
 }
 
-bool MicroLuaClass::GetHasFunction( lua_State* lua_state, const std::string& name ) {
+bool MicroLuaTable::GetHasFunction( lua_State* lua_state, const std::string& name ) {
 	return GetHas( lua_state, name ) == MicroLuaTypes::Function;
 }
 
-MicroLuaValue MicroLuaClass::Get( lua_State* lua_state, const std::string& name ) {
+MicroLuaValue MicroLuaTable::Get( lua_State* lua_state, const std::string& name ) {
 	if ( lua_state != NULL && GetIsValid( ) )
 		PopFront( lua_state, name );
 
 	return { lua_state };
 }
 
-lua_CFunction MicroLuaClass::GetFunction( lua_State* lua_state, const std::string& name ) {
+lua_CFunction MicroLuaTable::GetFunction( lua_State* lua_state, const std::string& name ) {
 	auto* lua_function = (lua_CFunction)NULL;
 
 	if ( lua_state != NULL && GetIsValid( ) ) {
@@ -147,11 +147,11 @@ lua_CFunction MicroLuaClass::GetFunction( lua_State* lua_state, const std::strin
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	OPERATOR ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaClass::operator bool( ) const {
+MicroLuaTable::operator bool( ) const {
 	return GetIsValid( );
 }
 
-MicroLuaClass& MicroLuaClass::operator=( MicroLuaClass&& other ) {
+MicroLuaTable& MicroLuaTable::operator=( MicroLuaTable&& other ) {
 	m_table = std::move( other.m_table );
 
 	return micro_self;

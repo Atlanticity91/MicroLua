@@ -1,13 +1,13 @@
 /**
  *
- *  __  __ _            _
- * |  \/  (_)__ _ _ ___| |  _  _ __ _
- * | |\/| | / _| '_/ _ \ |_| || / _` |
- * |_|  |_|_\__|_| \___/____\_,_\__,_|
+ *  __  __ _             ___
+ * |  \/  (_)__ _ _ ___ / __|___ _ _ ___
+ * | |\/| | / _| '_/ _ \ (__/ _ \ '_/ -_)
+ * |_|  |_|_\__|_| \___/\___\___/_| \___|
  *
  * MIT License
  *
- * Copyright (c) 2024 Alves Quentin
+ * Copyright (c) 2024- Alves Quentin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,7 @@ namespace micro {
 	 * @param data : Query data to push.
 	 **/
 	template<typename Type>
-	void lua_push( lua_State* lua_state, const Type data ) {
+	void lua_push( lua_State* lua_state, const Type& data ) {
 		micro_compile_if( std::is_integral<Type>::value )
 			lua_pushinteger( lua_state, (lua_Integer)data );
 		micro_compile_elif( std::is_floating_point<Type>::value )
