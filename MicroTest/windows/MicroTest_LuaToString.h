@@ -1,9 +1,9 @@
 /**
  *
- *  __  __ _            _
- * |  \/  (_)__ _ _ ___| |  _  _ __ _
- * | |\/| | / _| '_/ _ \ |_| || / _` |
- * |_|  |_|_\__|_| \___/____\_,_\__,_|
+ *  __  __ _           _____       _
+ * |  \/  (_)__ _ _ __|_   _|__ __| |_
+ * | |\/| | / _| '_/ _ \| |/ -_|_-<  _|
+ * |_|  |_|_\__|_| \___/|_|\___/__/\__|
  *
  * MIT License
  *
@@ -29,23 +29,36 @@
  *
  **/
 
-#include "__micro_lua_pch.h"
+#include "CppUnitTest.h"
+#include <MicroLua.h>
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//		===	PUBLIC ===
-////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaDebugBreakpoint::MicroLuaDebugBreakpoint( )
-	: MicroLuaDebugBreakpoint{ "", 0 }
-{ }
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-MicroLuaDebugBreakpoint::MicroLuaDebugBreakpoint( const uint32_t line )
-	: MicroLuaDebugBreakpoint{ "", line }
-{ }
+namespace Microsoft::VisualStudio::CppUnitTestFramework {
 
-MicroLuaDebugBreakpoint::MicroLuaDebugBreakpoint( 
-	const std::string& name, 
-	const uint32_t line 
-)
-	: FileName{ std::move( name ) },
-	FileLine{ line }
-{ }
+	/**
+	 * ToString function
+	 * @note : Convert Lua types to string.
+	 * @param value : Query Lua type.
+	 * @return : Return Lua type string value.
+	 **/
+	template<>
+	inline std::wstring ToString<MicroLuaTypes>( const MicroLuaTypes& value ) {
+		auto result = std::wstringstream{ };
+
+		switch ( value ) {
+			case MicroLuaTypes::Boolean  : result << "Boolean";  break;
+			case MicroLuaTypes::Integer  : result << "Integer";  break;
+			case MicroLuaTypes::Number	 : result << "Number";   break;
+			case MicroLuaTypes::Pointer  : result << "Pointer";  break;
+			case MicroLuaTypes::Function : result << "Function"; break;
+			case MicroLuaTypes::Class	 : result << "Class";	 break;
+			case MicroLuaTypes::None	 : result << "None";	 break;
+
+			default: break;
+		}
+
+		return result.str( );
+	}
+
+};

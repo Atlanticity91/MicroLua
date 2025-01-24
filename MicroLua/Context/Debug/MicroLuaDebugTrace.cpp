@@ -35,7 +35,8 @@
 //		===	PUBLIC ===
 ////////////////////////////////////////////////////////////////////////////////////////////
 MicroLuaDebugTrace::MicroLuaDebugTrace( )
-	: StepMode{ false },
+	: HasStopped{ false },
+	StepMode{ false },
 	Breakpoints{ } 
 { }
 
@@ -60,4 +61,30 @@ void MicroLuaDebugTrace::RemoveBreakpoint( const MicroLuaDebugBreakpoint& breakp
 		if ( iterator < pair->second.end( ) )
 			pair->second.erase( iterator );
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PUBLIC GET ===
+////////////////////////////////////////////////////////////////////////////////////////////
+bool MicroLuaDebugTrace::GetIsValid( ) const {
+	return Breakpoints.size( ) > 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	OPERATOR ===
+////////////////////////////////////////////////////////////////////////////////////////////
+MicroLuaDebugTrace& MicroLuaDebugTrace::operator=( const MicroLuaDebugTrace& other ) {
+	HasStopped  = other.HasStopped;
+	StepMode	= other.StepMode;
+	Breakpoints = other.Breakpoints;
+
+	return micro_self;
+}
+
+MicroLuaDebugTrace& MicroLuaDebugTrace::operator=( MicroLuaDebugTrace&& other ) noexcept {
+	HasStopped  = other.HasStopped;
+	StepMode    = other.StepMode;
+	Breakpoints = std::move( other.Breakpoints );
+
+	return micro_self;
 }

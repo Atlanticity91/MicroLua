@@ -89,12 +89,13 @@ void MicroLuaDebugger::Disable( lua_State* lua_state ) {
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC STATIC ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-bool MicroLuaDebugger::GetHookIsBreakpoint( 
-    lua_Debug* lua_debug, 
-    MicroLuaDebugTrace* trace 
+bool MicroLuaDebugger::GetHookIsBreakpoint(
+    lua_Debug* lua_debug,
+    MicroLuaDebugTrace* trace
 ) {
     auto result = false;
-    auto pair   = trace->Breakpoints.find( { lua_debug->source } );
+    auto name   = std::string{ lua_debug->name ? lua_debug->name : "" };
+    auto pair   = trace->Breakpoints.find( name );
 
     if ( pair != trace->Breakpoints.end( ) ) {
         for ( const auto& line : pair->second ) {
@@ -106,11 +107,13 @@ bool MicroLuaDebugger::GetHookIsBreakpoint(
     return result;
 }
 
-void MicroLuaDebugger::SendHookMessage( lua_Debug* lua_debug ) {
+void MicroLuaDebugger::SendHookMessage( 
+    lua_Debug* lua_debug,
+    MicroLuaDebugTrace* trace
+) {
     const auto* file_name = lua_debug->source;
-    auto file_line = lua_debug->currentline;
-
-    std::string event = R"({
+    const auto file_line  = lua_debug->currentline;
+    auto debug_event = std::string{ R"({
         "type": "event",
         "event": "stopped",
         "body": {
@@ -118,9 +121,11 @@ void MicroLuaDebugger::SendHookMessage( lua_Debug* lua_debug ) {
             "source": ")" + std::string( file_name ) + R"(",
             "line": )" + std::to_string( file_line ) + R"(
         }
-    })";
+    })" };
 
-    MicroLuaDebugPipe::Write( event );
+    MicroLuaDebugPipe::Write( debug_event );
+
+    trace->HasStopped = true;
 }
 
 void MicroLuaDebugger::ParseHookResponse( MicroLuaDebugTrace* trace ) {
@@ -129,9 +134,10 @@ void MicroLuaDebugger::ParseHookResponse( MicroLuaDebugTrace* trace ) {
     if ( MicroLuaDebugPipe::Read( buffer, 1024 ) ) {
         auto buffer_string = std::string{ buffer };
 
-        if ( buffer_string.find( "\"command\":\"continue\"" ) != std::string::npos )
-            trace->StepMode = false;
-        else if ( buffer_string.find( "\"command\":\"step\"" ) != std::string::npos )
+        if ( buffer_string.find( "\"command\":\"continue\"" ) != std::string::npos ) {
+            trace->HasStopped = false;
+            trace->StepMode   = false;
+        } else if ( buffer_string.find( "\"command\":\"step\"" ) != std::string::npos )
             trace->StepMode = true;
     }
 }
@@ -144,12 +150,16 @@ void MicroLuaDebugger::DebugHook( lua_State* lua_state, lua_Debug* lua_debug ) {
     auto* lua_trace = micro_cast( lua_touserdata( lua_state, MICRO_LUA_STACK_TOP ), MicroLuaDebugTrace* );
     lua_pop( lua_state, 1 );
 
-    lua_getinfo( lua_state, "nSl", lua_debug );
+    if ( lua_trace == NULL || !lua_trace->GetIsValid( ) )
+        return;
+
+    lua_getstack( lua_state, 0, lua_debug );
+    lua_getinfo( lua_state, "nSlu", lua_debug );
 
     if ( !GetHookIsBreakpoint( lua_debug, lua_trace ) )
         return;
 
-    SendHookMessage( lua_debug );
+    SendHookMessage( lua_debug, lua_trace );
     ParseHookResponse( lua_trace );
 }
 
@@ -164,6 +174,25 @@ uint32_t MicroLuaDebugger::GetFlags( ) const {
     return m_flags;
 }
 
-MicroLuaDebugTrace& MicroLuaDebugger::GetTrace( ) { 
+const MicroLuaDebugTrace& MicroLuaDebugger::GetTrace( ) const { 
     return m_trace;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	OPERATOR ===
+////////////////////////////////////////////////////////////////////////////////////////////
+MicroLuaDebugger& MicroLuaDebugger::operator=( const MicroLuaDebugger& other ) {
+    m_hook  = other.m_hook;
+    m_flags = other.m_flags;
+    m_trace = other.m_trace;
+
+    return micro_self;
+}
+
+MicroLuaDebugger& MicroLuaDebugger::operator=( MicroLuaDebugger&& other ) noexcept {
+    m_hook  = other.m_hook;
+    m_flags = other.m_flags;
+    m_trace = std::move( other.m_trace );
+
+    return micro_self;
 }

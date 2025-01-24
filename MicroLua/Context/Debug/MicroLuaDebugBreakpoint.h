@@ -40,6 +40,8 @@ struct MicroLuaDebugBreakpoint {
 
 	MicroLuaDebugBreakpoint( );
 
+	MicroLuaDebugBreakpoint( const uint32_t line );
+
 	MicroLuaDebugBreakpoint( const std::string& name, const uint32_t line );
 
 };

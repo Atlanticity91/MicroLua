@@ -1,9 +1,9 @@
 /**
  *
- *  __  __ _            _
- * |  \/  (_)__ _ _ ___| |  _  _ __ _
- * | |\/| | / _| '_/ _ \ |_| || / _` |
- * |_|  |_|_\__|_| \___/____\_,_\__,_|
+ *  __  __ _           _____       _
+ * |  \/  (_)__ _ _ __|_   _|__ __| |_
+ * | |\/| | / _| '_/ _ \| |/ -_|_-<  _|
+ * |_|  |_|_\__|_| \___/|_|\___/__/\__|
  *
  * MIT License
  *
@@ -29,23 +29,41 @@
  *
  **/
 
-#include "__micro_lua_pch.h"
+#include "MicroTest_LuaToString.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-//		===	PUBLIC ===
+//		===	TEST ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaDebugBreakpoint::MicroLuaDebugBreakpoint( )
-	: MicroLuaDebugBreakpoint{ "", 0 }
-{ }
+namespace UnitTest {
 
-MicroLuaDebugBreakpoint::MicroLuaDebugBreakpoint( const uint32_t line )
-	: MicroLuaDebugBreakpoint{ "", line }
-{ }
+	TEST_CLASS( MicroTest_LuaDebug ) {
 
-MicroLuaDebugBreakpoint::MicroLuaDebugBreakpoint( 
-	const std::string& name, 
-	const uint32_t line 
-)
-	: FileName{ std::move( name ) },
-	FileLine{ line }
-{ }
+	private:
+		MicroLuaContext CreateTestContext( 
+			std::initializer_list<lua_CFunction> libraries 
+		) {
+			auto context = MicroLuaContext{ };
+
+			Assert::IsTrue( context.Create( ) );
+
+			context.LoadLibraries( libraries );
+
+			return std::move( context );
+		};
+
+	public:
+		TEST_METHOD( Breakpoint ) {
+			auto context = CreateTestContext( { } );
+			
+			context.Inject( "function m( a )\nprint( a )\nend\n" );
+			context.AddBreakpoint( { "", 2 } );
+			context.Invoke( "m", 0, 10 );
+
+			const auto& debug_trace = context.GetDebugTrace( );
+
+			Assert::IsTrue( debug_trace.HasStopped );
+		};
+
+	};
+
+};

@@ -71,7 +71,10 @@ public:
 		MicroLuaDebugTrace* trace 
 	);
 
-	static void SendHookMessage( lua_Debug* lua_debug );
+	static void SendHookMessage( 
+		lua_Debug* lua_debug, 
+		MicroLuaDebugTrace* trace 
+	);
 
 	static void ParseHookResponse( MicroLuaDebugTrace* trace );
 
@@ -83,6 +86,11 @@ public:
 
 	uint32_t GetFlags( ) const;
 
-	MicroLuaDebugTrace& GetTrace( );
+	const MicroLuaDebugTrace& GetTrace( ) const;
+
+public:
+	MicroLuaDebugger& operator=( const MicroLuaDebugger& other );
+
+	MicroLuaDebugger& operator=( MicroLuaDebugger&& other ) noexcept;
 
 };

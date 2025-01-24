@@ -188,7 +188,7 @@ public:
 
     uint32_t GetDebugFlags( ) const;
 
-    MicroLuaDebugTrace& GetDebugTrace( );
+    const MicroLuaDebugTrace& GetDebugTrace( ) const;
 
     MicroLuaValue Pop( const std::string& name );
 

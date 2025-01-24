@@ -66,10 +66,11 @@ MicroLuaContext::MicroLuaContext( MicroLuaContext&& other ) noexcept
 {
     Terminate( );
 
-    m_in_use   = true;
     m_state    = other.m_state;
     m_returns  = std::move( other.m_returns );
     m_debugger = std::move( other.m_debugger );
+
+    Acquire( );
 
     other.m_state = NULL;
 }
@@ -261,7 +262,7 @@ uint32_t MicroLuaContext::GetDebugFlags( ) const {
     return m_debugger.GetFlags( );
 }
 
-MicroLuaDebugTrace& MicroLuaContext::GetDebugTrace( ) {
+const MicroLuaDebugTrace& MicroLuaContext::GetDebugTrace( ) const {
     return m_debugger.GetTrace( );
 }
 

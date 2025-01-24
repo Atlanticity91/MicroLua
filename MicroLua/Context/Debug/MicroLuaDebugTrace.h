@@ -35,6 +35,7 @@
 
 struct MicroLuaDebugTrace {
 
+	bool HasStopped;
 	bool StepMode;
 	std::unordered_map<std::string, std::vector<uint32_t>> Breakpoints;
 
@@ -43,5 +44,11 @@ struct MicroLuaDebugTrace {
 	void AddBreakpoint( const MicroLuaDebugBreakpoint& breakpoint );
 
 	void RemoveBreakpoint( const MicroLuaDebugBreakpoint& breakpoint );
+
+	bool GetIsValid( ) const;
+
+	MicroLuaDebugTrace& operator=( const MicroLuaDebugTrace& other );
+
+	MicroLuaDebugTrace& operator=( MicroLuaDebugTrace&& other ) noexcept;
 
 };
