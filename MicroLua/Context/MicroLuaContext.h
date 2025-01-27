@@ -31,7 +31,11 @@
 
 #pragma once
 
-#include "Debug/MicroLuaDebugger.h"
+#ifdef DEBUG
+#   include "Debug/MicroLuaDebugger.h"
+#else
+#   include "Utils/MicroLuaValue.h"
+#endif
 
 class MicroLuaContext final {
 
@@ -41,7 +45,10 @@ private:
     bool m_in_use;
     lua_State* m_state;
     std::vector<MicroLuaValue> m_returns;
+
+#   ifdef DEBUG
     MicroLuaDebugger m_debugger;
+#   endif
 
 public:
     MicroLuaContext( );
@@ -56,8 +63,10 @@ public:
 
     bool Create( );
 
+#   ifdef DEBUG
     void SetDebugHook( lua_Hook lua_hook );
     void SetDebugHook( lua_Hook hook, const uint32_t flags );
+    void ResetDebugHook( );
     void AddDebugFlag( const uint32_t flags );
     void RemoveDebugFlag( const uint32_t flags );
 
@@ -65,6 +74,7 @@ public:
     void AddBreakpoint( const std::string& name, const uint32_t line );
     void RemoveBreakpoint( const MicroLuaDebugBreakpoint& breakpoint );
     void RemoveBreakpoint( const std::string& name, const uint32_t line );
+#   endif
 
     bool LoadDefaultLibraries( );
     bool LoadLibrary( lua_CFunction lua_library );
@@ -100,23 +110,8 @@ public:
             return;
 
         auto* lua_name = name.c_str( );
-        auto lua_value = value.GetData( );
-        auto lua_type  = value.GetType( );
 
-        switch ( lua_type ) {
-            case MicroLuaTypes::Boolean  :
-            case MicroLuaTypes::Integer  : lua_pushinteger( m_state, lua_value.Integer );                                break;
-            case MicroLuaTypes::Number   : lua_pushnumber( m_state, lua_value.Number );                                  break;
-            case MicroLuaTypes::String   : lua_pushstring( m_state, micro_cast( lua_value.Pointer, micro_string ) );     break;
-            case MicroLuaTypes::Pointer  : lua_pushlightuserdata( m_state, lua_value.Pointer );                          break;
-            case MicroLuaTypes::Function : lua_pushcfunction( m_state, micro_cast( lua_value.Pointer, lua_CFunction ) ); break;
-
-            case MicroLuaTypes::Class : 
-                /* TOOD( ALVES Quentin ) : Manage class */ 
-                break;
-
-            default : break;
-        }
+        value.Push( m_state );
 
         lua_setglobal( m_state, lua_name );
     };
@@ -182,6 +177,11 @@ public:
 
     lua_State* GetState( ) const;
 
+    MicroLuaValue Pop( const std::string& name );
+
+    const std::vector<MicroLuaValue>& PopReturns( ) const;
+
+#   ifdef DEBUG
     MicroLuaDebugger& GetDebugger( );
 
     lua_Hook GetDebugHook( ) const;
@@ -189,10 +189,7 @@ public:
     uint32_t GetDebugFlags( ) const;
 
     const MicroLuaDebugTrace& GetDebugTrace( ) const;
-
-    MicroLuaValue Pop( const std::string& name );
-
-    const std::vector<MicroLuaValue>& PopReturns( ) const;
+#   endif
 
 public:
     template<typename Type>

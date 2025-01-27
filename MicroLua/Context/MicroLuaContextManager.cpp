@@ -56,9 +56,6 @@ bool MicroLuaContextManager::Create( const uint32_t thread_count ) {
             break;
     }
 
-    if ( result )
-        MicroLuaDebugPipe::Create( { "127.0.0.1", 123 } );
-
     return result;
 }
 
@@ -108,8 +105,6 @@ void MicroLuaContextManager::Release( const uint32_t context_handle ) {
 }
 
 void MicroLuaContextManager::Terminate( ) {
-    MicroLuaDebugPipe::Terminate( );
-
     for ( auto& context : m_context )
         context.Terminate( );
 }
@@ -121,10 +116,8 @@ bool MicroLuaContextManager::GetExist( const uint32_t context_handle ) const {
     return context_handle < (uint32_t)m_context.size( );
 }
 
-MicroLuaContext* MicroLuaContextManager::GetContext( 
-    const uint32_t context_handle 
-) {
-    auto* result = (MicroLuaContext*)nullptr;
+MicroLuaContext* MicroLuaContextManager::Get( const uint32_t context_handle ) {
+    auto* result = micro_cast( nullptr, MicroLuaContext* );
 
     if ( GetExist( context_handle ) )
         result = micro_ptr( m_context[ context_handle] );

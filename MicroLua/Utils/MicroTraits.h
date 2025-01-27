@@ -58,6 +58,7 @@ extern "C" {
 #include <random>
 #include <regex>
 #include <set>
+#include <shared_mutex>
 #include <string>
 #include <thread>
 #include <type_traits>

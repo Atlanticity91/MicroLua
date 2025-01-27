@@ -52,13 +52,31 @@ bool MicroLuaLibraryManager::Add( const MicroLuaLibrary& library ) {
 	return result;
 }
 
-void MicroLuaLibraryManager::Merge( const MicroLuaLibrary& library ) {
-	auto pair = m_libraries.find( library.Name );
+bool MicroLuaLibraryManager::Merge( const MicroLuaLibrary& library ) {
+	auto result = false;
+	auto pair   = m_libraries.find( library.Name );
 
-	if ( pair != m_libraries.end( ) )
+	if ( pair != m_libraries.end( ) ) {
+		result = true;
+
 		pair->second.Merge( library );
-	else
-		Add( library );
+	}  else
+		result = Add( library );
+
+	return result;
+}
+
+bool MicroLuaLibraryManager::Remove( const std::string& name ) {
+	auto result = false;
+	auto pair   = m_libraries.find( name );
+
+	if ( pair != m_libraries.end( ) ) {
+		m_libraries.erase( name );
+
+		result = true;
+	}
+
+	return result;
 }
 
 void MicroLuaLibraryManager::Enable( const std::string& name ) {
@@ -90,6 +108,10 @@ void MicroLuaLibraryManager::Register( lua_State* lua_state, const std::string& 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC GET ===
 ////////////////////////////////////////////////////////////////////////////////////////////
+bool MicroLuaLibraryManager::GetHasLibrary( const std::string& name ) const {
+	return m_libraries.find( name ) != m_libraries.end( );
+}
+
 bool MicroLuaLibraryManager::GetIsEnabled( const std::string& name ) const {
 	auto result = false;
 	auto pair   = m_libraries.find( name );
@@ -100,8 +122,8 @@ bool MicroLuaLibraryManager::GetIsEnabled( const std::string& name ) const {
 	return result;
 }
 
-MicroLuaLibrary* MicroLuaLibraryManager::GetLibrary( const std::string& name ) {
-	auto* result = (MicroLuaLibrary*)nullptr;
+MicroLuaLibrary* MicroLuaLibraryManager::Get( const std::string& name ) {
+	auto* result = micro_cast( nullptr, MicroLuaLibrary* );
 	auto pair = m_libraries.find( name );
 
 	if ( pair != m_libraries.end( ) )

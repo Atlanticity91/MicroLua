@@ -33,15 +33,34 @@
 
 #include "MicroLuaDebugPipe.h"
 
+/**
+ * @struct MicroLuaDebugBreakpoint
+ * @brief Encapsulate the data for breakpoint in Lua scripts.
+ **/
 struct MicroLuaDebugBreakpoint {
 
 	std::string FileName;
 	uint32_t FileLine;
 
+	/**
+	 * @brief Create and initialize an empty breakpoint.
+	 **/
 	MicroLuaDebugBreakpoint( );
 
+	/**
+	 * @brief Create and initialize a breakpoint for the default Lua stack.
+	 * @param[in] line The line number where the breakpoint should be set in the 
+	 *			  default Lua script.
+	 **/
 	MicroLuaDebugBreakpoint( const uint32_t line );
 
+	/**
+	 * @brief Creates and initializes a breakpoint with a specified script name 
+	 *		  and line number.
+	 * @param[in] name The name of the Lua script where the breakpoint is located.
+	 * @param[in] line The line number where the breakpoint is set within the Lua 
+	 *			  script.
+	 **/
 	MicroLuaDebugBreakpoint( const std::string& name, const uint32_t line );
 
 };

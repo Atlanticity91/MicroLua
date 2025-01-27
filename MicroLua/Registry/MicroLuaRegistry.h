@@ -31,14 +31,29 @@
 
 #pragma once
 
-#include "Libraries/MicroLuaLibraryManager.h"
+#include "MicroLuaGlobalManager.h"
 
-class MicroLuaRegistry final { 
+class MicroLuaRegistry final {
+
+private:
+    mutable std::shared_mutex m_thread_lock;
+    MicroLuaLibraryManager m_libraries;
+    MicroLuaGlobalManager m_globals;
 
 public:
     MicroLuaRegistry( );
 
-    ~MicroLuaRegistry( );
+    ~MicroLuaRegistry( ) = default;
+
+    bool AddLibrary( const MicroLuaLibrary& library );
+
+    bool MergeLibrary( const MicroLuaLibrary& library );
+
+    bool RemoveLibrary( const std::string& name );
+
+    void EnableLibrary( const std::string& name );
+
+    void DisableLibrary( const std::string& name );
 
     bool UnRegister( const std::string& name );
 
@@ -46,21 +61,25 @@ public:
     
     bool UnLoad( const std::string& name );
 
+    void AsignEnvironement( MicroLuaContext* lua_context );
+
 public:
     template<typename Type>
     bool Register( const std::string& name, const Type& value ) {
-        return false;
+        auto thread_lock = std::unique_lock{ m_thread_lock };
+
+        return m_globals.Register( name, value );
     };
 
 public:
     bool GetExist( const std::string& name ) const;
 
-public:
-    template<typename Type>
-    Type Get( const std::string& name ) const {
-        auto value = Type{ };
+    MicroLuaValue Get( const std::string& name ) const;
 
-        return std::move( value );
-    };
+    bool GetHasLibrary( const std::string& name ) const;
+
+    bool GetIsLibraryEnabled( const std::string& name ) const;
+
+    MicroLuaLibrary* GetLibrary( const std::string& name );
 
 };

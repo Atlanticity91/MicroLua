@@ -31,32 +31,22 @@
 
 #pragma once
 
-#include "MicroLuaDebugPipeErrors.h"
+#include "../Utils/MicroLuaValue.h"
 
 class MicroLuaDebugPipe final {
 
-private:
-#	ifdef _MSC_VER
-	static SOCKET m_socket;
-#	endif
-
 public:
-	MicroLuaDebugPipe( ) = delete;
+	MicroLuaDebugPipe( );
 
 	MicroLuaDebugPipe( const MicroLuaDebugPipe& ) = delete;
 
-	static MicroLuaDebugPipeErrors Create( 
-		const MicroLuaDebugPipeSpecificaton& specification 
-	);
-
-	static void Write( const std::string& message );
-
-	static bool Read( char* buffer, const uint32_t length );
-
-	static MicroLuaDebugPipeErrors Terminate( );
+	~MicroLuaDebugPipe( );
 
 public:
-	static bool GetIsValid( );
+	bool WaitFor( const uint32_t type );
+
+public:
+	static MicroLuaDebugPipe& Get( );
 
 public:
 	MicroLuaDebugPipe& operator=( const MicroLuaDebugPipe& ) = delete;

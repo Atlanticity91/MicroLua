@@ -46,6 +46,6 @@ MicroLuaDebugBreakpoint::MicroLuaDebugBreakpoint(
 	const std::string& name, 
 	const uint32_t line 
 )
-	: FileName{ std::move( name ) },
+	: FileName{ name },
 	FileLine{ line }
 { }

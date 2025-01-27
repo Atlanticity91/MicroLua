@@ -12,7 +12,7 @@ This repository contains the code for the Micro Lua Library, this project define
 Using [git-cli](https://git-scm.com/) :
 
 ```
-git clone --recursive https://github.com/Atlanticity91/MicroCore.git
+git clone --recursive https://github.com/Atlanticity91/MicroLua.git
 ```
 
 Existing repositories can be updated manually :
@@ -23,7 +23,7 @@ git submodule update
 ```
 
 # Build System
-MicroCore as part of the Micro project use the [Premake5](https://github.com/premake/premake-core) build system. [Premake5](https://github.com/premake/premake-core) instance is present in this repository under Build/[Premake5](https://github.com/premake/premake-core).
+MicroLua as part of the Micro project use the [Premake5](https://github.com/premake/premake-core) build system. [Premake5](https://github.com/premake/premake-core) instance is present in this repository under Build/[Premake5](https://github.com/premake/premake-core).
 
 Build files for [Premake5](https://github.com/premake/premake-core) are inside Build folder under :
 

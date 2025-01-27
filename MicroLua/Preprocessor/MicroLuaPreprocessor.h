@@ -36,7 +36,7 @@
 class MicroLuaPreprocessor final { 
 
 private:
-    lua_State* m_local_state;
+    MicroLuaContext m_context;
 
 public:
     MicroLuaPreprocessor( );
@@ -49,5 +49,8 @@ public:
 
 public:
     bool GetIsValid( ) const;
+
+public:
+    operator bool ( ) const;
 
 };

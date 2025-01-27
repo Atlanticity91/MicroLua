@@ -89,6 +89,26 @@ MicroLuaValue::MicroLuaValue( MicroLuaValue&& other ) noexcept
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PRIVATE ===
+////////////////////////////////////////////////////////////////////////////////////////////
+void MicroLuaValue::Push( lua_State* lua_state ) const {
+	switch ( m_type ) {
+		case MicroLuaTypes::Boolean  : lua_pushboolean( lua_state, (int)m_data.Integer );                           break;
+		case MicroLuaTypes::Integer	 : lua_pushinteger( lua_state, m_data.Integer );                                break;
+		case MicroLuaTypes::Number	 : lua_pushnumber( lua_state, m_data.Number );                                  break;
+		case MicroLuaTypes::String   : lua_pushstring( lua_state, micro_cast( m_data.Pointer, micro_string ) );     break;
+		case MicroLuaTypes::Pointer  : lua_pushlightuserdata( lua_state, m_data.Pointer );                          break;
+		case MicroLuaTypes::Function : lua_pushcfunction( lua_state, micro_cast( m_data.Pointer, lua_CFunction ) ); break;
+
+		case MicroLuaTypes::Class:
+			/* TOOD( ALVES Quentin ) : Manage class */
+			break;
+
+		default: break;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC GET ===
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool MicroLuaValue::GetHasValue( ) const {
@@ -117,6 +137,13 @@ MicroLuaValue::operator bool ( ) const {
 MicroLuaValue& MicroLuaValue::operator=( const MicroLuaValue& other ) {
 	m_type = other.m_type;
 	m_data = other.m_data;
+
+	return micro_self;
+}
+
+MicroLuaValue& MicroLuaValue::operator=( MicroLuaValue&& other ) noexcept {
+	m_type = other.m_type;
+	m_data = std::move( other.m_data );
 
 	return micro_self;
 }

@@ -35,7 +35,8 @@
 //		===	PUBLIC ===
 ////////////////////////////////////////////////////////////////////////////////////////////
 MicroLuaManager::MicroLuaManager( )
-    : m_preprocessor{ },
+    : m_thread_locker{ },
+    m_preprocessor{ },
     m_registry{ },
     m_context{ }
 { }
@@ -45,7 +46,11 @@ MicroLuaManager::~MicroLuaManager( ) {
 }
 
 bool MicroLuaManager::Create( const uint32_t thread_count ) {
-    return  m_preprocessor.Create( ) &&
+    Terminate( );
+
+    auto thread_lock = std::unique_lock{ m_thread_locker };
+
+    return  m_preprocessor.Create( ) && 
             m_context.Create( thread_count );
 } 
 
@@ -62,23 +67,27 @@ bool MicroLuaManager::UnLoad( const std::string& name ) {
 }
 
 uint32_t MicroLuaManager::Acquire( ) {
+    auto thread_lock = std::unique_lock( m_thread_locker );
     auto context_handle = m_context.Acquire( );
 
     if ( m_context.GetExist( context_handle ) ) {
-        auto* lua_state = m_context.GetContext( context_handle );
+        auto* lua_context = m_context.Get( context_handle );
 
-        //m_libraries.RegisterAll( lua_state );
-        //m_registry.RegisterAll( lua_state );
+        m_registry.AsignEnvironement( lua_context );
     }
 
     return context_handle;
 }
 
 void MicroLuaManager::Release( uint32_t& context_handle ) {
+    auto thread_lock = std::unique_lock( m_thread_locker );
+
     m_context.Release( context_handle );
 }
 
 void MicroLuaManager::Terminate( ) {
+    auto thread_lock = std::unique_lock( m_thread_locker );
+
     m_preprocessor.Terminate( );
     m_context.Terminate( );
 }
@@ -88,4 +97,23 @@ void MicroLuaManager::Terminate( ) {
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool MicroLuaManager::GetExist( const std::string& name ) const {
     return m_registry.GetExist( name );
+}
+
+MicroLuaValue MicroLuaManager::Get( const std::string& name ) const {
+    return m_registry.Get( name );
+}
+
+bool MicroLuaManager::GetContextExist( const uint32_t context_handle ) const {
+    return m_context.GetExist( context_handle );
+}
+
+MicroLuaContext* MicroLuaManager::GetContext( const uint32_t context_handle ) {
+    return m_context.Get( context_handle );
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	OPERATOR ===
+////////////////////////////////////////////////////////////////////////////////////////////
+MicroLuaContext* MicroLuaManager::operator[]( const uint32_t context_handle ) {
+    return GetContext( context_handle );
 }

@@ -45,7 +45,9 @@ public:
 
 	bool Add( const MicroLuaLibrary& library );
 
-	void Merge( const MicroLuaLibrary& library );
+	bool Merge( const MicroLuaLibrary& library );
+
+	bool Remove( const std::string& name );
 
 	void RegisterAll( lua_State* lua_state );
 
@@ -56,8 +58,10 @@ public:
 	void Disable( const std::string& name );
 
 public:
+	bool GetHasLibrary( const std::string& name ) const;
+
 	bool GetIsEnabled( const std::string& name ) const;
 
-	MicroLuaLibrary* GetLibrary( const std::string& name );
+	MicroLuaLibrary* Get( const std::string& name );
 
 };

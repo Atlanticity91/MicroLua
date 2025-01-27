@@ -31,24 +31,104 @@
 
 #include "__micro_lua_pch.h"
 
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PUBLIC ===
+////////////////////////////////////////////////////////////////////////////////////////////
 MicroLuaRegistry::MicroLuaRegistry( )
+    : m_thread_lock{ },
+    m_libraries{ },
+    m_globals{ }
 { }
 
-MicroLuaRegistry::~MicroLuaRegistry( ) {
+bool MicroLuaRegistry::AddLibrary( const MicroLuaLibrary& library ) {
+    auto thread_lock = std::unique_lock{ m_thread_lock };
+
+    return m_libraries.Add( library );
+}
+
+bool MicroLuaRegistry::MergeLibrary( const MicroLuaLibrary& library ) {
+    auto thread_lock = std::unique_lock{ m_thread_lock };
+
+    return m_libraries.Merge( library );
+}
+
+bool MicroLuaRegistry::RemoveLibrary( const std::string& name ) {
+    auto thread_lock = std::unique_lock{ m_thread_lock };
+
+    return m_libraries.Remove( name );
+}
+
+void MicroLuaRegistry::EnableLibrary( const std::string& name ) {
+    auto thread_lock = std::unique_lock{ m_thread_lock };
+
+    m_libraries.Enable( name );
+}
+
+void MicroLuaRegistry::DisableLibrary( const std::string& name ) {
+    auto thread_lock = std::unique_lock{ m_thread_lock };
+
+    m_libraries.Disable( name );
 }
 
 bool MicroLuaRegistry::UnRegister( const std::string& name ) {
-    return false;
+    auto thread_lock = std::unique_lock{ m_thread_lock };
+
+    return m_globals.UnRegister( name );
 }
 
 bool MicroLuaRegistry::Load( const std::string& name, const std::string& path ) {
+    auto thread_lock = std::unique_lock{ m_thread_lock };
+
     return false;
 }
 
 bool MicroLuaRegistry::UnLoad( const std::string& name ) {
+    auto thread_lock = std::unique_lock{ m_thread_lock };
+
     return false;
 }
 
+void MicroLuaRegistry::AsignEnvironement( MicroLuaContext* lua_context ) {
+    auto thread_lock = std::shared_lock{ m_thread_lock };
+
+    if ( lua_context == nullptr || !lua_context->Create( ) )
+        return;
+
+    auto* lua_state = lua_context->GetState( );
+
+    m_libraries.RegisterAll( lua_state );
+    m_globals.AppendAll( lua_state );
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PUBLIC GET ===
+////////////////////////////////////////////////////////////////////////////////////////////
 bool MicroLuaRegistry::GetExist( const std::string& name ) const {
-    return false;
+    auto thread_lock = std::shared_lock{ m_thread_lock };
+
+    return m_globals.GetExist( name );
+}
+
+MicroLuaValue MicroLuaRegistry::Get( const std::string& name ) const {
+    auto thread_lock = std::shared_lock{ m_thread_lock };
+
+    return std::move( m_globals.Get( name ) );
+}
+
+bool MicroLuaRegistry::GetHasLibrary( const std::string& name ) const {
+    auto thread_lock = std::shared_lock{ m_thread_lock };
+
+    return m_libraries.GetHasLibrary( name );
+}
+
+bool MicroLuaRegistry::GetIsLibraryEnabled( const std::string& name ) const {
+    auto thread_lock = std::shared_lock{ m_thread_lock };
+
+    return m_libraries.GetIsEnabled( name );
+}
+
+MicroLuaLibrary* MicroLuaRegistry::GetLibrary( const std::string& name ) {
+    auto thread_lock = std::shared_lock{ m_thread_lock };
+
+    return m_libraries.Get( name );
 }

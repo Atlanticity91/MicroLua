@@ -37,8 +37,10 @@
 MicroLuaContext::MicroLuaContext( ) 
     : m_in_use{ false },
     m_state{ NULL },
-    m_returns{ },
-    m_debugger{ }
+    m_returns{ }
+#   ifdef DEBUG
+    , m_debugger{ }
+#   endif
 { }
 
 MicroLuaContext::MicroLuaContext( lua_State* lua_state )
@@ -58,7 +60,10 @@ MicroLuaContext::MicroLuaContext( const MicroLuaContext& other )
     m_in_use   = true;
     m_state    = other.m_state;
     m_returns  = other.m_returns;
+
+#   ifdef DEBUG
     m_debugger = other.m_debugger;
+#   endif
 }
 
 MicroLuaContext::MicroLuaContext( MicroLuaContext&& other ) noexcept
@@ -68,7 +73,10 @@ MicroLuaContext::MicroLuaContext( MicroLuaContext&& other ) noexcept
 
     m_state    = other.m_state;
     m_returns  = std::move( other.m_returns );
+    
+#   ifdef DEBUG
     m_debugger = std::move( other.m_debugger );
+#   endif
 
     Acquire( );
 
@@ -88,43 +96,49 @@ bool MicroLuaContext::Create( ) {
     return GetIsValid( );
 }
 
-void MicroLuaContext::SetDebugHook( lua_Hook lua_hook ) {
-    if ( lua_hook == NULL )
-        return;
+#ifdef DEBUG
+    void MicroLuaContext::SetDebugHook( lua_Hook lua_hook ) {
+        if ( lua_hook == NULL )
+            return;
 
-    m_debugger.Set( lua_hook );
-}
+        m_debugger.Set( lua_hook );
+    }
 
-void MicroLuaContext::SetDebugHook( lua_Hook hook, const uint32_t flags ) {
-    if ( hook == NULL )
-        return;
+    void MicroLuaContext::SetDebugHook( lua_Hook hook, const uint32_t flags ) {
+        if ( hook == NULL )
+            return;
 
-    m_debugger.Set( hook, flags );
-}
+        m_debugger.Set( hook, flags );
+    }
 
-void MicroLuaContext::AddDebugFlag( const uint32_t flags ) {
-    m_debugger.Add( flags );
-}
+    void MicroLuaContext::ResetDebugHook( ) {
+        m_debugger.Reset( );
+    }
 
-void MicroLuaContext::RemoveDebugFlag( const uint32_t flags ) {
-    m_debugger.Remove( flags );
-}
+    void MicroLuaContext::AddDebugFlag( const uint32_t flags ) {
+        m_debugger.Add( flags );
+    }
 
-void MicroLuaContext::AddBreakpoint( const MicroLuaDebugBreakpoint& breakpoint ) {
-    m_debugger.AddBreakpoint( breakpoint );
-}
+    void MicroLuaContext::RemoveDebugFlag( const uint32_t flags ) {
+        m_debugger.Remove( flags );
+    }
 
-void MicroLuaContext::AddBreakpoint( const std::string& name, const uint32_t line ) {
-    m_debugger.AddBreakpoint( { name, line } );
-}
+    void MicroLuaContext::AddBreakpoint( const MicroLuaDebugBreakpoint& breakpoint ) {
+        m_debugger.AddBreakpoint( breakpoint );
+    }
 
-void MicroLuaContext::RemoveBreakpoint( const MicroLuaDebugBreakpoint& breakpoint ) {
-    m_debugger.RemoveBreakpoint( breakpoint );
-}
+    void MicroLuaContext::AddBreakpoint( const std::string& name, const uint32_t line ) {
+        m_debugger.AddBreakpoint( { name, line } );
+    }
 
-void MicroLuaContext::RemoveBreakpoint( const std::string& name, const uint32_t line ) {
-    m_debugger.RemoveBreakpoint( { name, line } );
-}
+    void MicroLuaContext::RemoveBreakpoint( const MicroLuaDebugBreakpoint& breakpoint ) {
+        m_debugger.RemoveBreakpoint( breakpoint );
+    }
+
+    void MicroLuaContext::RemoveBreakpoint( const std::string& name, const uint32_t line ) {
+        m_debugger.RemoveBreakpoint( { name, line } );
+    }
+#endif
 
 bool MicroLuaContext::LoadDefaultLibraries( ) {
     auto result = false;
@@ -202,7 +216,9 @@ bool MicroLuaContext::Execute( const std::string& lua_source ) {
 
 void MicroLuaContext::Terminate( ) {
     if ( GetIsValid( ) ) {
+#       ifdef DEBUG
         m_debugger.Disable( m_state );
+#       endif
 
         lua_close( m_state );
 
@@ -217,7 +233,7 @@ void MicroLuaContext::Terminate( ) {
 void MicroLuaContext::Acquire( ) {
     m_in_use = true;
 
-    // TODO( ALVES Quentin ) : Copy stack globals and 
+    // TODO( ALVES Quentin ) : Copy stack globals
     
 #   ifdef DEBUG
     m_debugger.Enable( m_state );
@@ -250,22 +266,6 @@ lua_State* MicroLuaContext::GetState( ) const {
     return m_state;
 }
 
-MicroLuaDebugger& MicroLuaContext::GetDebugger( ) {
-    return m_debugger;
-}
-
-lua_Hook MicroLuaContext::GetDebugHook( ) const {
-    return m_debugger.GetHook( );
-}
-
-uint32_t MicroLuaContext::GetDebugFlags( ) const {
-    return m_debugger.GetFlags( );
-}
-
-const MicroLuaDebugTrace& MicroLuaContext::GetDebugTrace( ) const {
-    return m_debugger.GetTrace( );
-}
-
 MicroLuaValue MicroLuaContext::Pop( const std::string& name ) {
     auto* lua_name = name.c_str( );
     auto value     = MicroLuaValue{ };
@@ -276,12 +276,30 @@ MicroLuaValue MicroLuaContext::Pop( const std::string& name ) {
         value = MicroLuaValue{ m_state };
     }
 
-    return std::move( value );
+    return value;
 }
 
 const std::vector<MicroLuaValue>& MicroLuaContext::PopReturns( ) const {
     return m_returns;
 }
+
+#ifdef DEBUG
+    MicroLuaDebugger& MicroLuaContext::GetDebugger( ) {
+        return m_debugger;
+    }
+
+    lua_Hook MicroLuaContext::GetDebugHook( ) const {
+        return m_debugger.GetHook( );
+    }
+
+    uint32_t MicroLuaContext::GetDebugFlags( ) const {
+        return m_debugger.GetFlags( );
+    }
+
+    const MicroLuaDebugTrace& MicroLuaContext::GetDebugTrace( ) const {
+        return m_debugger.GetTrace( );
+    }
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	OPERATOR ===

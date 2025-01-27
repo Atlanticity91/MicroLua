@@ -33,43 +33,160 @@
 
 #include "Registry/MicroLuaRegistry.h"
 
+/**
+ * @class MicroLuaManager
+ * @brief Lua manager to encapsulate preprocessing lua script, manage registry
+ *        for Lua-C++ shared globals and Lua context for executing Lua on 
+ *        multiple trhead with multiple Lua state.
+ * @field m_preprocessor Current manager lua preprocessor instance.
+ * @field m_registry Current manager lua registry instance.
+ * @field m_context Current manager lua context manager instance.
+ **/
 class MicroLuaManager final {
 
 private:
+    std::mutex m_thread_locker;
     MicroLuaPreprocessor m_preprocessor;
     MicroLuaRegistry m_registry;
     MicroLuaContextManager m_context;
 
 public:
+    /**
+     * @brief Create and initialize a Lua manager instance.
+     **/
     MicroLuaManager( );
 
+    /**
+     * @brief Terminate and clean up the Lua manager instance.
+     * @note call Terminate( ) if it is not called manually.
+     **/
     ~MicroLuaManager( );
 
+    /**
+     * @brief Create all Lua state required for the specified 
+     *        numbers of threads.
+     * @param[in] thread_count The number of thread or number ot Lua context to
+     *            create, default is 1.
+     * @return true if all Lua contexts were created successfully; false otherwise.
+     **/
     bool Create( const uint32_t thread_count = 1 );
     
+    /**
+     * @brief Unregister the value associated with the given name from the 
+     *        registry.
+     * @param[in] name The name of the registry value to remove.
+     * @return true when the deletion was successful; false otherwise.
+     **/
     bool UnRegister( const std::string& name );
 
+    /**
+     * @brief Load a Lua module to the registry under the specified name.
+     * @param[in] name The name under which the module will be registered in the 
+     *            registry.
+     * @param[in] path The path to the Lua module file.
+     * @return true if the module was successfully loaded and registered in the 
+     *         registry; false otherwise.
+     **/
     bool Load( const std::string& name, const std::string& path );
+
+    /**
+     * @brief UnLoad the Lua module specified by name from the registry.
+     * @param[in] name The name under which the module is registred in the
+     *            registry.
+     * @return true if the module was successfully unloded; false otherwise. 
+     **/
     bool UnLoad( const std::string& name );
 
+    /**
+     * @brief Acquire a free Lua context handle.
+     * @return a valid Lua context handle if successful; an invalid handle 
+     *         value otherwise.
+     **/
     uint32_t Acquire( );
+
+    /**
+     * @brief Release the Lua context associated with provided context handle.
+     * @param[in] context_handle The context handle of the Lua context to release.
+     **/
     void Release( uint32_t& context_handle );
 
+    /**
+     * @brief Terminates and cleans up the Lua manager instance.
+     **/
     void Terminate( );
 
 public:
+    /**
+     * @brief Register the provided value with the associated name in the registry.
+     * @template[in] Type The C++ type of the provided value.
+     * @param[in] name The name under which the value will be registered in the 
+     *            registry.
+     * @param[in] value The C++ value to register.
+     * @return true if the provided value was successfully registered under the 
+     *         specified name in the registry; false otherwise.
+     **/
     template<typename Type>
     bool Register( const std::string& name, const Type& value ) {
         return m_registry.Register<Type>( name, value );
     };
 
 public:
+    /**
+     * @brief Get if a value in the registry exist under the specified name.
+     * @param[in] name The name to look for in the registry.
+     * @return true if a value exists under the specified name in the registry; 
+     *         false otherwise.
+     **/
     bool GetExist( const std::string& name ) const;
 
+    /**
+     * @brief Retrieve the value under provided name from the registry.
+     * @param[in] name The name of the value in the registry.
+     * @return the value under name, or a default-initialized MicroLuaValue if 
+     *         not found.
+     **/
+    MicroLuaValue Get( const std::string& name ) const;
+
+    /**
+     * @brief Verify if a context handle value is valid.
+     * @param[in] context_handle The context handle value to verify.
+     * @return true if the context handle points to a valid Lua context; false 
+     *         otherwise.
+     **/
+    bool GetContextExist( const uint32_t context_handle ) const;
+
+    /**
+     * @brief Retrieve the Lua context assotiated with the provided context 
+     *        handle.
+     * @param[in] context_handle The context handle value.
+     * @return a pointer to the Lua context associated with the provided context 
+     *         handle, or nullptr if not found.
+     **/
+    MicroLuaContext* GetContext( const uint32_t context_handle );
+
 public:
+    /**
+     * @brief Retrieve the value under provided name from the registry, casted to 
+     *        the specified type.
+     * @template[in] Type The C++ type to cast the value to.
+     * @param[in] name The name of the value in the registry.
+     * @return the value cast to the specified type, or a default-initialized 
+     *         value of Type if not found.
+     **/
     template<typename Type>
     Type Get( const std::string& name ) const {
-        return m_registry.Get<Type>( name );
+        auto value = m_registry.Get( name );
+
+        return value.As<Type>( );
     };
+
+public:
+    /**
+     * @brief Retrieves the Lua context associated with the provided context handle.
+     * @param[in] context_handle The context handle value.
+     * @return a pointer to the Lua context associated with the provided context 
+     *         handle, or nullptr if not found.
+     **/
+    MicroLuaContext* operator[]( const uint32_t context_handle );
 
 };

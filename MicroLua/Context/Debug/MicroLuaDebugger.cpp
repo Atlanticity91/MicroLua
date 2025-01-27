@@ -37,10 +37,12 @@
 //		===	PUBLIC ===
 ////////////////////////////////////////////////////////////////////////////////////////////
 MicroLuaDebugger::MicroLuaDebugger( )
-    : m_hook{ &MicroLuaDebugger::DebugHook },
-    m_flags{ LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE },
+    : m_hook{ },
+    m_flags{ },
     m_trace{ }
-{ }
+{ 
+    Reset( );
+}
 
 void MicroLuaDebugger::Set( lua_Hook hook ) {
     m_hook = hook;
@@ -49,6 +51,11 @@ void MicroLuaDebugger::Set( lua_Hook hook ) {
 void MicroLuaDebugger::Set( lua_Hook hook, const uint32_t flags ) {
     m_hook  = hook;
     m_flags = flags;
+}
+
+void MicroLuaDebugger::Reset( ) {
+    m_hook  = &MicroLuaDebugger::DebugHook;
+    m_flags = LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE;
 }
 
 void MicroLuaDebugger::Add( const uint32_t flags ) {
@@ -63,12 +70,20 @@ void MicroLuaDebugger::AddBreakpoint( const MicroLuaDebugBreakpoint& breakpoint 
     m_trace.AddBreakpoint( breakpoint );
 }
 
+void MicroLuaDebugger::AddBreakpoint( const uint32_t line ) {
+    m_trace.AddBreakpoint( { "", line } );
+}
+
 void MicroLuaDebugger::AddBreakpoint( const std::string& name, const uint32_t line ) {
     m_trace.AddBreakpoint( { name, line } );
 }
 
 void MicroLuaDebugger::RemoveBreakpoint( const MicroLuaDebugBreakpoint& breakpoint ) {
     m_trace.AddBreakpoint( breakpoint );
+}
+
+void MicroLuaDebugger::RemoveBreakpoint( const uint32_t line ) {
+    m_trace.AddBreakpoint( { "", line } );
 }
 
 void MicroLuaDebugger::RemoveBreakpoint( const std::string& name, const uint32_t line ) {
@@ -123,7 +138,7 @@ void MicroLuaDebugger::SendHookMessage(
         }
     })" };
 
-    MicroLuaDebugPipe::Write( debug_event );
+    //MicroLuaDebugPipe::Write( debug_event );
 
     trace->HasStopped = true;
 }
@@ -131,6 +146,7 @@ void MicroLuaDebugger::SendHookMessage(
 void MicroLuaDebugger::ParseHookResponse( MicroLuaDebugTrace* trace ) {
     char buffer[ 1024 ];
 
+    /*
     if ( MicroLuaDebugPipe::Read( buffer, 1024 ) ) {
         auto buffer_string = std::string{ buffer };
 
@@ -140,6 +156,7 @@ void MicroLuaDebugger::ParseHookResponse( MicroLuaDebugTrace* trace ) {
         } else if ( buffer_string.find( "\"command\":\"step\"" ) != std::string::npos )
             trace->StepMode = true;
     }
+    */
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

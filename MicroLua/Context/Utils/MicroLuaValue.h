@@ -40,6 +40,7 @@
 micro_class MicroLuaValue final {
 
 	friend class MicroLuaContext;
+	friend class MicroLuaGlobalManager;
 
 	MicroLuaTypes m_type;
 	MicroLuaData m_data;
@@ -104,6 +105,9 @@ public:
 			// TODO( ALVES Quentin ) : Implement class support.
 		}
 	};
+
+private:
+	void Push( lua_State* lua_state ) const;
 
 public:
 	/**
@@ -181,6 +185,8 @@ public:
 	operator bool ( ) const;
 	
 	MicroLuaValue& operator=( const MicroLuaValue& other );
+
+	MicroLuaValue& operator=( MicroLuaValue&& other ) noexcept;
 
 };
 

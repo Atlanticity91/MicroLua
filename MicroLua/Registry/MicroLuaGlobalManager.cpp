@@ -34,25 +34,59 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaMetaField::MicroLuaMetaField( )
-	: MicroLuaMetaField{ "", MicroLuaTypes::None }
+MicroLuaGlobalManager::MicroLuaGlobalManager( )
+	: m_globals{ }
 { }
 
-MicroLuaMetaField::MicroLuaMetaField( micro_string name, const MicroLuaTypes type )
-	: Name{ name },
-	Type{ type }
-{ }
+bool MicroLuaGlobalManager::UnRegister( const std::string& name ) {
+	return m_globals.erase( name ) == 1;
+}
+
+void MicroLuaGlobalManager::Append( lua_State* lua_state, const std::string& name ) {
+	if ( lua_state == NULL || name.empty( ) )
+		return;
+
+	auto pair = m_globals.find( name );
+
+	if ( pair != m_globals.end( ) )
+		Append( lua_state, micro_ref( pair ) );
+}
+
+void MicroLuaGlobalManager::AppendAll( lua_State* lua_state ) {
+	if ( lua_state == NULL )
+		return;
+
+	for ( const auto& pair : m_globals )
+		Append( lua_state, pair );
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PRIVATE ===
+////////////////////////////////////////////////////////////////////////////////////////////
+void MicroLuaGlobalManager::Append( 
+	lua_State* lua_state,
+	const std::pair<std::string, MicroLuaValue>& pair 
+) {
+	const auto* lua_name = pair.first.c_str( );
+
+	pair.second.Push( lua_state );
+
+	lua_setglobal( lua_state, lua_name );
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC GET ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-bool MicroLuaMetaField::GetIsValid( ) const {
-	return ( strlen( Name ) > 0 ) && ( Type > MicroLuaTypes::None );
+bool MicroLuaGlobalManager::GetExist( const std::string& name ) const {
+	return m_globals.find( name ) != m_globals.end( );
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//		===	OPERATOR ===
-////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaMetaField::operator bool( ) const {
-	return GetIsValid( );
+MicroLuaValue MicroLuaGlobalManager::Get( const std::string& name ) const {
+	auto result = MicroLuaValue{ };
+	auto pair   = m_globals.find( name );
+
+	if ( pair != m_globals.end( ) )
+		result = pair->second;
+
+	return result;
 }
