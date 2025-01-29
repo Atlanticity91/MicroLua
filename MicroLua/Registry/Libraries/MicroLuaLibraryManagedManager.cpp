@@ -1,24 +1,24 @@
-/** 
- * 
- *  __  __ _            _             
- * |  \/  (_)__ _ _ ___| |  _  _ __ _ 
+/**
+ *
+ *  __  __ _            _
+ * |  \/  (_)__ _ _ ___| |  _  _ __ _
  * | |\/| | / _| '_/ _ \ |_| || / _` |
- * |_|  |_|_\__|_| \___/____\_,_\__,_|                                  
- *                                      
+ * |_|  |_|_\__|_| \___/____\_,_\__,_|
+ *
  * MIT License
  *
  * Copyright (c) 2024- Alves Quentin
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,39 +26,39 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
+ *
  **/
 
-#pragma once
+#include "__micro_lua_pch.h"
 
-#include "../Context/MicroLuaContextManager.h"
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PUBLIC ===
+////////////////////////////////////////////////////////////////////////////////////////////
+MicroLuaLibraryManagedManager::MicroLuaLibraryManagedManager( ) 
+	: m_libraries{ }
+{ }
 
-class MicroLuaPreprocessor final { 
+void MicroLuaLibraryManagedManager::Register( 
+	const std::string& name, 
+	const MicroLuaLibraryManaged& library 
+) {
+	auto pair = std::make_pair( name, library );
 
-private:
-    MicroLuaContext m_context;
+	m_libraries.emplace( pair );
+}
 
-public:
-    MicroLuaPreprocessor( );
+void MicroLuaLibraryManagedManager::UnRegister( const std::string& name ) {
+	m_libraries.erase( name );
+}
 
-    ~MicroLuaPreprocessor( );
+void MicroLuaLibraryManagedManager::Import(
+	lua_State* lua_state,
+	const std::string& name
+) {
+	const auto* lua_name = name.c_str( );
+	const auto iterator  = m_libraries.find( name );
+	const auto length	 = iterator->second.GetLength( );
+	const auto* data	 = micro_cast( iterator->second.GetData( ), const char* );
 
-    bool Create( );
-
-    void Terminate( );
-
-public:
-    static int32_t LuaWriter(
-        lua_State* lua_state,
-        const void* data,
-        size_t size,
-        void* user_data
-    );
-
-public:
-    bool GetIsValid( ) const;
-
-public:
-    operator bool ( ) const;
-
-};
+	luaL_loadbuffer( lua_state, data, length, lua_name );
+}

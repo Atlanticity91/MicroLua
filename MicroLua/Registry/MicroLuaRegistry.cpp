@@ -40,52 +40,55 @@ MicroLuaRegistry::MicroLuaRegistry( )
     m_globals{ }
 { }
 
-bool MicroLuaRegistry::AddLibrary( const MicroLuaLibrary& library ) {
+bool MicroLuaRegistry::Add(
+    const std::string& name,
+    const MicroLuaLibraryNative& library 
+) {
     auto thread_lock = std::unique_lock{ m_thread_lock };
 
-    return m_libraries.Add( library );
+    return m_libraries.Register( name, library );
 }
 
-bool MicroLuaRegistry::MergeLibrary( const MicroLuaLibrary& library ) {
+bool MicroLuaRegistry::Add(
+    const std::string& name, 
+    const MicroLuaLibraryManaged& library 
+) {
     auto thread_lock = std::unique_lock{ m_thread_lock };
 
-    return m_libraries.Merge( library );
+    return m_libraries.Register( name, library );
 }
 
-bool MicroLuaRegistry::RemoveLibrary( const std::string& name ) {
+bool MicroLuaRegistry::Extend(
+    const std::string& name,
+    const MicroLuaLibraryNative& extension 
+) {
     auto thread_lock = std::unique_lock{ m_thread_lock };
 
-    return m_libraries.Remove( name );
+    return m_libraries.Extend( name, extension );
 }
 
-void MicroLuaRegistry::EnableLibrary( const std::string& name ) {
+bool MicroLuaRegistry::Remove( const std::string& name ) {
     auto thread_lock = std::unique_lock{ m_thread_lock };
 
-    m_libraries.Enable( name );
+    return m_libraries.UnRegister( name );
 }
 
-void MicroLuaRegistry::DisableLibrary( const std::string& name ) {
+bool MicroLuaRegistry::Enable( const std::string& name ) {
     auto thread_lock = std::unique_lock{ m_thread_lock };
 
-    m_libraries.Disable( name );
+    return m_libraries.Enable( name );
+}
+
+bool MicroLuaRegistry::Disable( const std::string& name ) {
+    auto thread_lock = std::unique_lock{ m_thread_lock };
+
+    return m_libraries.Disable( name );
 }
 
 bool MicroLuaRegistry::UnRegister( const std::string& name ) {
     auto thread_lock = std::unique_lock{ m_thread_lock };
 
     return m_globals.UnRegister( name );
-}
-
-bool MicroLuaRegistry::Load( const std::string& name, const std::string& path ) {
-    auto thread_lock = std::unique_lock{ m_thread_lock };
-
-    return false;
-}
-
-bool MicroLuaRegistry::UnLoad( const std::string& name ) {
-    auto thread_lock = std::unique_lock{ m_thread_lock };
-
-    return false;
 }
 
 void MicroLuaRegistry::AsignEnvironement( MicroLuaContext* lua_context ) {
@@ -96,26 +99,26 @@ void MicroLuaRegistry::AsignEnvironement( MicroLuaContext* lua_context ) {
 
     auto* lua_state = lua_context->GetState( );
 
-    m_libraries.RegisterAll( lua_state );
-    m_globals.AppendAll( lua_state );
+    m_libraries.ImportAll( lua_state );
+    m_globals.ImportAll( lua_state );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC GET ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-bool MicroLuaRegistry::GetExist( const std::string& name ) const {
+bool MicroLuaRegistry::GetGlobalExist( const std::string& name ) const {
     auto thread_lock = std::shared_lock{ m_thread_lock };
 
     return m_globals.GetExist( name );
 }
 
-MicroLuaValue MicroLuaRegistry::Get( const std::string& name ) const {
+MicroLuaValue MicroLuaRegistry::GetGlobal( const std::string& name ) const {
     auto thread_lock = std::shared_lock{ m_thread_lock };
 
     return std::move( m_globals.Get( name ) );
 }
 
-bool MicroLuaRegistry::GetHasLibrary( const std::string& name ) const {
+bool MicroLuaRegistry::GetLibraryExist( const std::string& name ) const {
     auto thread_lock = std::shared_lock{ m_thread_lock };
 
     return m_libraries.GetHasLibrary( name );
@@ -127,8 +130,8 @@ bool MicroLuaRegistry::GetIsLibraryEnabled( const std::string& name ) const {
     return m_libraries.GetIsEnabled( name );
 }
 
-MicroLuaLibrary* MicroLuaRegistry::GetLibrary( const std::string& name ) {
+bool MicroLuaRegistry::GetIsLibraryManaged( const std::string& name ) const {
     auto thread_lock = std::shared_lock{ m_thread_lock };
 
-    return m_libraries.Get( name );
+    return m_libraries.GetIsManaged( name );
 }

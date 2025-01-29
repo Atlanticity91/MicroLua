@@ -262,6 +262,10 @@ bool MicroLuaContext::GetIsInUse( ) const {
     return GetIsValid( ) && m_in_use;
 }
 
+bool MicroLuaContext::GetHasReturn( ) const {
+    return m_returns.size( ) > 0;
+}
+
 lua_State* MicroLuaContext::GetState( ) const {
     return m_state;
 }

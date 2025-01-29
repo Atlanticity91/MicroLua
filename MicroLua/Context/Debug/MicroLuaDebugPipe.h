@@ -31,9 +31,12 @@
 
 #pragma once
 
-#include "../Utils/MicroLuaValue.h"
+#include "IMicroLuaDebugAdapter.h"
 
 class MicroLuaDebugPipe final {
+
+private:
+	static IMicroLuaDebugAdapter* m_debug_adapter;
 
 public:
 	MicroLuaDebugPipe( );
@@ -42,8 +45,11 @@ public:
 
 	~MicroLuaDebugPipe( );
 
-public:
-	bool WaitFor( const uint32_t type );
+	bool Attach( IMicroLuaDebugAdapter* adaptater );
+
+	bool Broadcast( const MicroLuaDebugAdapterBroadcastMessage* query );
+
+	bool Receive( MicroLuaDebugAdapterReceiveMessage& message );
 
 public:
 	static MicroLuaDebugPipe& Get( );

@@ -32,19 +32,90 @@
 #include "__micro_lua_pch.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-//		===	PUBLIC ===
+//		===	INTERNAL ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaDebugPipe::MicroLuaDebugPipe( ) 
-{ }
+IMicroLuaDebugAdapter* MicroLuaDebugPipe::m_debug_adapter = nullptr;
 
-MicroLuaDebugPipe::~MicroLuaDebugPipe( ) { 
+bool GetAdapterIsValid( const IMicroLuaDebugAdapter* adapter ) {
+	return adapter != nullptr && adapter->GetIsValid( );
+}
+
+void TerminateAdapter( IMicroLuaDebugAdapter*& adapter ) {
+	if ( !GetAdapterIsValid( adapter ) )
+		return;
+
+	adapter->Disconnect( );
+
+	adapter = nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-//		===	PUBLIC GET ===
+//		===	PUBLIC ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-bool MicroLuaDebugPipe::WaitFor( const uint32_t type ) {
-	return false;
+MicroLuaDebugPipe::MicroLuaDebugPipe( ) 
+{
+#	ifdef MICRO_USE_CORE
+	MicroDebugAdapter::Connect( { "127.0.0.1", 4000 } );
+#	endif
+}
+
+MicroLuaDebugPipe::~MicroLuaDebugPipe( ) {
+	TerminateAdapter( m_debug_adapter );
+
+#	ifdef MICRO_USE_CORE
+	MicroDebugAdapter::Disconnect( );
+#	endif
+}
+
+bool MicroLuaDebugPipe::Attach( IMicroLuaDebugAdapter* adaptater ) {
+	auto result = false;
+
+	TerminateAdapter( m_debug_adapter );
+
+	m_debug_adapter = adaptater;
+
+	if ( m_debug_adapter != nullptr )
+		result = m_debug_adapter->Connect( );
+
+	return result;
+}
+
+bool MicroLuaDebugPipe::Broadcast( 
+	const MicroLuaDebugAdapterBroadcastMessage* message
+) {
+	auto result = false;
+
+	if ( message != nullptr ) {
+		if ( GetAdapterIsValid( m_debug_adapter ) )
+			result = m_debug_adapter->Broadcast( message );
+#		ifdef MICRO_USE_CORE
+		else {
+			const auto* broadcast_message = micro_cast( message, const MicroDebugEvent* );
+
+			result = ( MicroDebugAdapter::Broadcast( broadcast_message ) == MicroDebugAdapterError::None );
+		}
+#		endif
+	}
+
+	return result;
+}
+
+bool MicroLuaDebugPipe::Receive( MicroLuaDebugAdapterReceiveMessage& message ) {
+	auto result = false;
+
+	if ( message != nullptr ) {
+		if ( GetAdapterIsValid( m_debug_adapter ) )
+			result = m_debug_adapter->Receive( message );
+#		ifdef MICRO_USE_CORE
+		else {
+			auto& debug_event = micro_ref_as( message, MicrDebugEventTypes );
+
+			result = ( MicroDebugAdapter::Receive( debug_event ) == MicroDebugAdapterError::None );
+		}
+#		endif
+	}
+
+	return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

@@ -175,6 +175,8 @@ public:
 
     bool GetIsInUse( ) const;
 
+    bool GetHasReturn( ) const;
+
     lua_State* GetState( ) const;
 
     MicroLuaValue Pop( const std::string& name );

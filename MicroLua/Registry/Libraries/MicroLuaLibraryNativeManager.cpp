@@ -29,14 +29,43 @@
  *
  **/
 
-#pragma once 
+#include "__micro_lua_pch.h"
 
-#include "../../Preprocessor/MicroLuaPreprocessor.h"
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PUBLIC ===
+////////////////////////////////////////////////////////////////////////////////////////////
+MicroLuaLibraryNativeManager::MicroLuaLibraryNativeManager( ) 
+	: m_libraries{ }
+{ }
 
-micro_interface MicroLuaLibrary {
+void MicroLuaLibraryNativeManager::Register(
+	const std::string& name,
+	const MicroLuaLibraryNative& library
+) {
+	auto pair = std::make_pair( name, library );
 
-    micro_abstract( bool Import( lua_State* lua_state ) );
+	m_libraries.emplace( pair );
+}
 
-    micro_abstract( bool GetIsValid( ) const );
+void MicroLuaLibraryNativeManager::Extend(
+	const std::string& name,
+	const MicroLuaLibraryNative& extension
+) {
+	auto pair = m_libraries.find( name );
 
-};
+	pair->second.Extend( extension );
+}
+
+void MicroLuaLibraryNativeManager::UnRegister( const std::string& name ) {
+	m_libraries.erase( name );
+}
+
+void MicroLuaLibraryNativeManager::Import( lua_State* lua_state, const std::string& name ) {
+	const auto* lua_name = name.c_str( );
+	auto pair			 = m_libraries.find( name );
+
+	if ( !pair->second.Import( lua_state ) )
+		lua_pushnil( lua_state );
+
+	lua_setglobal( lua_state, lua_name );
+}

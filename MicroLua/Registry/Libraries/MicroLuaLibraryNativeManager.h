@@ -29,17 +29,32 @@
  *
  **/
 
-#pragma once
+#pragma once 
 
-#include "MicroLuaDebugPipeSpecificaton.h"
+#include "MicroLuaLibraryNative.h"
 
-enum class MicroLuaDebugPipeErrors : uint32_t {
+micro_class MicroLuaLibraryNativeManager final {
 
-	None = 0,
-	SocketInitFail,
-	SocketCreationFail,
-	SocketConnectionFail,
-	SocketShutdownFail,
-	SocketCloseFail
+private:
+	std::unordered_map<std::string, MicroLuaLibraryNative> m_libraries;
+
+public:
+	MicroLuaLibraryNativeManager( );
+
+	~MicroLuaLibraryNativeManager( ) = default;
+
+	void Register( 
+		const std::string& name, 
+		const MicroLuaLibraryNative& library 
+	);
+
+	void Extend( 
+		const std::string& name, 
+		const MicroLuaLibraryNative& extension
+	);
+
+	void UnRegister( const std::string& name );
+
+	void Import( lua_State* lua_state, const std::string& name );
 
 };

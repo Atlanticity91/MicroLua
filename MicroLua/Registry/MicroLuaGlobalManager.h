@@ -45,14 +45,14 @@ public:
 
     bool UnRegister( const std::string& name );
 
-    void Append( lua_State* lua_state, const std::string& name );
+    void Import( lua_State* lua_state, const std::string& name );
 
-    void AppendAll( lua_State* lua_state );
+    void ImportAll( lua_State* lua_state );
 
 private:
-    void Append( 
+    void Import(
         lua_State* lua_state, 
-        const std::pair<std::string, MicroLuaValue>& pair 
+        const std::pair<std::string, MicroLuaValue>& iterator
     );
 
 public:
@@ -62,9 +62,9 @@ public:
         auto result    = GetExist( name );
 
         if ( !result ) {
-            auto pair = std::make_pair( name, lua_value );
+            auto iterator = std::make_pair( name, lua_value );
 
-            m_globals.emplace( pair );
+            m_globals.emplace( iterator );
 
             result = true;
         }

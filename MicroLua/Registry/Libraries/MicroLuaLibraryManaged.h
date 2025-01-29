@@ -29,22 +29,40 @@
  *
  **/
 
-#pragma once
+#pragma once 
 
-#ifdef _MSC_VER 
-#	include <winsock2.h>
-#	pragma comment( lib, "ws2_32.lib" )
-#endif
+#include "MicroLuaLibraryNativeManager.h"
 
-#include "../Utils/MicroLuaValue.h"
+micro_class MicroLuaLibraryManaged final : public MicroLuaLibrary {
 
-struct MicroLuaDebugPipeSpecificaton {
+private:
+	std::vector<uint8_t> m_bytecodes;
 
-	micro_string Address;
-	uint16_t Port;
+public:
+	MicroLuaLibraryManaged( );
 
-	MicroLuaDebugPipeSpecificaton( );
+	MicroLuaLibraryManaged( const std::vector<uint8_t>& bytecodes );
 
-	MicroLuaDebugPipeSpecificaton( micro_string address, const uint16_t port );
+	MicroLuaLibraryManaged( std::vector<uint8_t>&& bytecodes ) noexcept;
+
+	MicroLuaLibraryManaged( const MicroLuaLibraryManaged& other );
+
+	MicroLuaLibraryManaged( MicroLuaLibraryManaged&& other ) noexcept;
+
+    bool Compile( const std::string& source );
+
+    bool Compile( const char* source, const uint32_t length );
+
+	micro_implement( bool Import( lua_State* lua_state ) );
+
+public:
+	micro_implement( bool GetIsValid( ) const );
+
+	const uint8_t* GetData( ) const;
+
+	const uint32_t GetLength( ) const;
+
+public:
+	MicroLuaLibraryManaged& operator=( std::vector<uint8_t>&& bytecodes ) noexcept;
 
 };

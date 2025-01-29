@@ -35,15 +35,22 @@
 //		===	PUBLIC ===
 ////////////////////////////////////////////////////////////////////////////////////////////
 MicroLuaLibraryManager::MicroLuaLibraryManager( ) 
-	: m_libraries{ }
+	: m_libraries{ },
+	m_native_manager{ },
+	m_managed_manager{ }
 { }
 
-bool MicroLuaLibraryManager::Add( const MicroLuaLibrary& library ) {
-	auto result = false;
+bool MicroLuaLibraryManager::Register(
+	const std::string& name, 
+	const MicroLuaLibraryNative& library
+) {
+	auto iterator = m_libraries.find( name );
+	auto result	  = false;
 
-	if ( m_libraries.find( library.Name ) == m_libraries.end( ) ) {
-		auto pair = std::make_pair( library.Name, library );
+	if ( iterator == m_libraries.end( ) && library.GetIsValid( ) ) {
+		auto pair = std::make_pair( name, MicroLuaLibraryState{ true, false } );
 
+		m_native_manager.Register( name, library );
 		m_libraries.emplace( pair );
 
 		result = true;
@@ -52,26 +59,18 @@ bool MicroLuaLibraryManager::Add( const MicroLuaLibrary& library ) {
 	return result;
 }
 
-bool MicroLuaLibraryManager::Merge( const MicroLuaLibrary& library ) {
+bool MicroLuaLibraryManager::Register( 
+	const std::string& name, 
+	const MicroLuaLibraryManaged& library 
+) {
+	auto iterator = m_libraries.find( name );
 	auto result = false;
-	auto pair   = m_libraries.find( library.Name );
 
-	if ( pair != m_libraries.end( ) ) {
-		result = true;
+	if ( iterator == m_libraries.end( ) && library.GetIsValid( ) ) {
+		auto pair = std::make_pair( name, MicroLuaLibraryState{ true, true } );
 
-		pair->second.Merge( library );
-	}  else
-		result = Add( library );
-
-	return result;
-}
-
-bool MicroLuaLibraryManager::Remove( const std::string& name ) {
-	auto result = false;
-	auto pair   = m_libraries.find( name );
-
-	if ( pair != m_libraries.end( ) ) {
-		m_libraries.erase( name );
+		m_managed_manager.Register( name, library );
+		m_libraries.emplace( pair );
 
 		result = true;
 	}
@@ -79,30 +78,92 @@ bool MicroLuaLibraryManager::Remove( const std::string& name ) {
 	return result;
 }
 
-void MicroLuaLibraryManager::Enable( const std::string& name ) {
-	auto pair = m_libraries.find( name );
+bool MicroLuaLibraryManager::Extend(
+	const std::string& name,
+	const MicroLuaLibraryNative& extension
+) {
+	auto iterator = m_libraries.find( name );
+	auto result	  = false;
 
-	if ( pair != m_libraries.end( ) )
-		pair->second.Enable( );
+	if ( iterator != m_libraries.end( ) ) {
+		m_native_manager.Extend( name, extension );
+
+		result = true;
+	} else
+		result = Register( name, extension );
+
+	return result;
 }
 
-void MicroLuaLibraryManager::Disable( const std::string& name ) {
-	auto pair = m_libraries.find( name );
+bool MicroLuaLibraryManager::UnRegister( const std::string& name ) {
+	auto iterator = m_libraries.find( name );
+	auto result	  = false;
 
-	if ( pair != m_libraries.end( ) ) 
-		pair->second.Disable( );
+	if ( iterator != m_libraries.end( ) ) {
+		if ( iterator->second.IsManaged )
+			m_managed_manager.UnRegister( name );
+		else
+			m_native_manager.UnRegister( name );
+
+		result = ( m_libraries.erase( name ) == 1 );
+	}
+
+	return result;
 }
 
-void MicroLuaLibraryManager::RegisterAll( lua_State* lua_state ) {
-	for ( auto& pair : m_libraries )
-		pair.second.Register( lua_state );
+bool MicroLuaLibraryManager::Enable( const std::string& name ) {
+	auto iterator = m_libraries.find( name );
+	auto result   = ( iterator != m_libraries.end( ) );
+
+	if ( result )
+		iterator->second.IsEnabled = true;
+
+	return result;
 }
 
-void MicroLuaLibraryManager::Register( lua_State* lua_state, const std::string& name ) {
-	auto pair = m_libraries.find( name );
+bool MicroLuaLibraryManager::Disable( const std::string& name ) {
+	auto iterator = m_libraries.find( name );
+	auto result   = ( iterator != m_libraries.end( ) );
 
-	if ( pair != m_libraries.end( ) )
-		pair->second.Register( lua_state );
+	if ( result )
+		iterator->second.IsEnabled = false;
+
+	return result;
+}
+
+void MicroLuaLibraryManager::ImportAll( lua_State* lua_state ) {
+	if ( lua_state == NULL )
+		return;
+
+	for ( auto& iterator : m_libraries ) {
+		if ( !iterator.second.IsEnabled )
+			continue;
+
+		ImportInternal( lua_state, iterator );
+	}
+}
+
+void MicroLuaLibraryManager::Import( lua_State* lua_state, const std::string& name ) {
+	if ( lua_state == NULL )
+		return;
+
+	auto iterator = m_libraries.find( name );
+
+	if ( iterator != m_libraries.end( ) && iterator->second.IsEnabled )
+		ImportInternal( lua_state, micro_ref( iterator ) );
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PRIVATE ===
+////////////////////////////////////////////////////////////////////////////////////////////
+void MicroLuaLibraryManager::ImportInternal( 
+	lua_State* lua_state,
+	const std::pair<std::string, MicroLuaLibraryState>& iterator
+) {
+	if ( iterator.second.IsManaged )
+		m_managed_manager.Import( lua_state, iterator.first );
+	else
+		m_native_manager.Import( lua_state, iterator.first );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,21 +174,21 @@ bool MicroLuaLibraryManager::GetHasLibrary( const std::string& name ) const {
 }
 
 bool MicroLuaLibraryManager::GetIsEnabled( const std::string& name ) const {
-	auto result = false;
-	auto pair   = m_libraries.find( name );
+	auto iterator = m_libraries.find( name );
+	auto result   = false;
 
-	if ( pair != m_libraries.end( ) )
-		result = pair->second.GetIsEnabled( );
+	if ( iterator != m_libraries.end( ) )
+		result = iterator->second.IsEnabled;
 	
 	return result;
 }
 
-MicroLuaLibrary* MicroLuaLibraryManager::Get( const std::string& name ) {
-	auto* result = micro_cast( nullptr, MicroLuaLibrary* );
-	auto pair = m_libraries.find( name );
+bool MicroLuaLibraryManager::GetIsManaged( const std::string& name ) const {
+	auto iterator = m_libraries.find( name );
+	auto result   = false;
 
-	if ( pair != m_libraries.end( ) )
-		result = micro_ptr( pair->second );
+	if ( iterator != m_libraries.end( ) )
+		result = iterator->second.IsManaged;
 
 	return result;
 }

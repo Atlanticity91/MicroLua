@@ -56,7 +56,7 @@ void MicroLuaDebugTrace::RemoveBreakpoint( const MicroLuaDebugBreakpoint& breakp
 	if ( pair != Breakpoints.end( ) ) {
 		auto iterator_first = pair->second.begin( );
 		auto iterator_last  = pair->second.end( );
-		auto iterator		= std::find( iterator_first, iterator_last, breakpoint.FileLine );
+		auto iterator		= std::find( iterator_first, iterator_last, breakpoint );
 
 		if ( iterator < pair->second.end( ) )
 			pair->second.erase( iterator );

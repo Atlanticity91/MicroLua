@@ -97,6 +97,12 @@ extern "C" {
 #define micro_ref( VAR ) ( *(VAR) )
 
 /**
+ * micro_ref_as macro
+ * @note : Get reference from a C pointer.
+ **/
+#define micro_ref_as( VAR, TYPE ) micro_ref( micro_cast( VAR, TYPE* ) )
+
+/**
  * micro_unused macro
  * @note : Mark function parameter unused for the compiler.
  **/
@@ -202,6 +208,9 @@ extern "C" {
  * @note : Wrapper for exposing class.
  **/
 #define micro_class class MICRO_API
+
+#define micro_abstract( SIGNATURE ) virtual SIGNATURE = 0
+#define micro_implement( SIGNATURE ) virtual SIGNATURE override
 
 /**
  * micro_stringifyx macro

@@ -31,63 +31,22 @@
 
 #pragma once 
 
-#include "MicroLuaLibraryManagedManager.h"
+#include "MicroLuaLibraryManaged.h"
 
-micro_struct MicroLuaLibraryState {
-
-	bool IsEnabled;
-	bool IsManaged;
-
-	MicroLuaLibraryState( ) 
-		: MicroLuaLibraryState{ true, false }
-	{ };
-
-	MicroLuaLibraryState( const bool is_enabled, const bool is_managed )
-		: IsEnabled{ is_enabled },
-		IsManaged{ is_managed }
-	{ };
-
-};
-
-micro_class MicroLuaLibraryManager final {
+micro_class MicroLuaLibraryManagedManager final {
 
 private:
-	std::unordered_map<std::string, MicroLuaLibraryState> m_libraries;
-	MicroLuaLibraryNativeManager m_native_manager;
-	MicroLuaLibraryManagedManager m_managed_manager;
+	std::unordered_map<std::string, MicroLuaLibraryManaged> m_libraries;
 
 public:
-	MicroLuaLibraryManager( );
+	MicroLuaLibraryManagedManager( );
 
-	~MicroLuaLibraryManager( ) = default;
+	~MicroLuaLibraryManagedManager( ) = default;
 
-	bool Register( const std::string& name, const MicroLuaLibraryNative& library );
+	void Register( const std::string& name, const MicroLuaLibraryManaged& library );
 
-	bool Register( const std::string& name, const MicroLuaLibraryManaged& library );
-
-	bool Extend( const std::string& name, const MicroLuaLibraryNative& extension );
-
-	bool UnRegister( const std::string& name );
-
-	bool Enable( const std::string& name );
-
-	bool Disable( const std::string& name );
-
-	void ImportAll( lua_State* lua_state );
+	void UnRegister( const std::string& name );
 
 	void Import( lua_State* lua_state, const std::string& name );
-
-private:
-	void ImportInternal( 
-		lua_State* lua_state,
-		const std::pair<std::string, MicroLuaLibraryState>& pair
-	);
-
-public:
-	bool GetHasLibrary( const std::string& name ) const;
-
-	bool GetIsEnabled( const std::string& name ) const;
-
-	bool GetIsManaged( const std::string& name ) const;
 
 };

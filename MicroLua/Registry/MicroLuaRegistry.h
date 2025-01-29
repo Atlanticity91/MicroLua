@@ -45,21 +45,19 @@ public:
 
     ~MicroLuaRegistry( ) = default;
 
-    bool AddLibrary( const MicroLuaLibrary& library );
+    bool Add( const std::string& name, const MicroLuaLibraryNative& library );
 
-    bool MergeLibrary( const MicroLuaLibrary& library );
+    bool Add( const std::string& name, const MicroLuaLibraryManaged& library );
 
-    bool RemoveLibrary( const std::string& name );
+    bool Extend( const std::string& name, const MicroLuaLibraryNative& extension );
 
-    void EnableLibrary( const std::string& name );
+    bool Remove( const std::string& name );
 
-    void DisableLibrary( const std::string& name );
+    bool Enable( const std::string& name );
+
+    bool Disable( const std::string& name );
 
     bool UnRegister( const std::string& name );
-
-    bool Load( const std::string& name, const std::string& path );
-    
-    bool UnLoad( const std::string& name );
 
     void AsignEnvironement( MicroLuaContext* lua_context );
 
@@ -72,14 +70,14 @@ public:
     };
 
 public:
-    bool GetExist( const std::string& name ) const;
+    bool GetGlobalExist( const std::string& name ) const;
 
-    MicroLuaValue Get( const std::string& name ) const;
+    MicroLuaValue GetGlobal( const std::string& name ) const;
 
-    bool GetHasLibrary( const std::string& name ) const;
+    bool GetLibraryExist( const std::string& name ) const;
 
     bool GetIsLibraryEnabled( const std::string& name ) const;
 
-    MicroLuaLibrary* GetLibrary( const std::string& name );
+    bool GetIsLibraryManaged( const std::string& name ) const;
 
 };

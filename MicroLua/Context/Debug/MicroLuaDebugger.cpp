@@ -126,28 +126,21 @@ void MicroLuaDebugger::SendHookMessage(
     lua_Debug* lua_debug,
     MicroLuaDebugTrace* trace
 ) {
-    const auto* file_name = lua_debug->source;
-    const auto file_line  = lua_debug->currentline;
-    auto debug_event = std::string{ R"({
-        "type": "event",
-        "event": "stopped",
-        "body": {
-            "reason": "breakpoint",
-            "source": ")" + std::string( file_name ) + R"(",
-            "line": )" + std::to_string( file_line ) + R"(
-        }
-    })" };
+    /*
+    auto break_point = MicroDebugEventBreakpoint{ 0 };
+    
+    break_point.Line   = lua_debug->currentline;
+    break_point.Source = lua_debug->source;
 
-    //MicroLuaDebugPipe::Write( debug_event );
-
+    MicroLuaDebugPipe::Broadcast( &break_point );
+    */
     trace->HasStopped = true;
 }
 
 void MicroLuaDebugger::ParseHookResponse( MicroLuaDebugTrace* trace ) {
-    char buffer[ 1024 ];
-
     /*
-    if ( MicroLuaDebugPipe::Read( buffer, 1024 ) ) {
+    auto server_command = (uint32_t)0;
+    if ( MicroLuaDebugPipe::Receive( server_command ) ) { 
         auto buffer_string = std::string{ buffer };
 
         if ( buffer_string.find( "\"command\":\"continue\"" ) != std::string::npos ) {

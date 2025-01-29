@@ -42,34 +42,34 @@ bool MicroLuaGlobalManager::UnRegister( const std::string& name ) {
 	return m_globals.erase( name ) == 1;
 }
 
-void MicroLuaGlobalManager::Append( lua_State* lua_state, const std::string& name ) {
+void MicroLuaGlobalManager::Import( lua_State* lua_state, const std::string& name ) {
 	if ( lua_state == NULL || name.empty( ) )
 		return;
 
-	auto pair = m_globals.find( name );
+	auto iterator = m_globals.find( name );
 
-	if ( pair != m_globals.end( ) )
-		Append( lua_state, micro_ref( pair ) );
+	if ( iterator != m_globals.end( ) )
+		Import( lua_state, micro_ref( iterator ) );
 }
 
-void MicroLuaGlobalManager::AppendAll( lua_State* lua_state ) {
+void MicroLuaGlobalManager::ImportAll( lua_State* lua_state ) {
 	if ( lua_state == NULL )
 		return;
 
-	for ( const auto& pair : m_globals )
-		Append( lua_state, pair );
+	for ( const auto& iterator : m_globals )
+		Import( lua_state, iterator );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PRIVATE ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-void MicroLuaGlobalManager::Append( 
+void MicroLuaGlobalManager::Import(
 	lua_State* lua_state,
-	const std::pair<std::string, MicroLuaValue>& pair 
+	const std::pair<std::string, MicroLuaValue>& iterator
 ) {
-	const auto* lua_name = pair.first.c_str( );
+	const auto* lua_name = iterator.first.c_str( );
 
-	pair.second.Push( lua_state );
+	iterator.second.Push( lua_state );
 
 	lua_setglobal( lua_state, lua_name );
 }
@@ -82,11 +82,11 @@ bool MicroLuaGlobalManager::GetExist( const std::string& name ) const {
 }
 
 MicroLuaValue MicroLuaGlobalManager::Get( const std::string& name ) const {
-	auto result = MicroLuaValue{ };
-	auto pair   = m_globals.find( name );
+	auto iterator = m_globals.find( name );
+	auto result   = MicroLuaValue{ };
 
-	if ( pair != m_globals.end( ) )
-		result = pair->second;
+	if ( iterator != m_globals.end( ) )
+		result = iterator->second;
 
 	return result;
 }

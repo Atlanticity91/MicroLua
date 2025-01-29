@@ -49,3 +49,10 @@ MicroLuaDebugBreakpoint::MicroLuaDebugBreakpoint(
 	: FileName{ name },
 	FileLine{ line }
 { }
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	OPERATOR ===
+////////////////////////////////////////////////////////////////////////////////////////////
+bool MicroLuaDebugBreakpoint::operator==( const MicroLuaDebugBreakpoint& other ) const {
+	return FileName == other.FileName && FileLine == other.FileLine;
+}

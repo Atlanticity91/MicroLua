@@ -63,4 +63,6 @@ struct MicroLuaDebugBreakpoint {
 	 **/
 	MicroLuaDebugBreakpoint( const std::string& name, const uint32_t line );
 
+	bool operator==( const MicroLuaDebugBreakpoint& other ) const;
+
 };

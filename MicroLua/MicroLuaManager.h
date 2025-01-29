@@ -65,11 +65,23 @@ public:
     /**
      * @brief Create all Lua state required for the specified 
      *        numbers of threads.
-     * @param[in] thread_count The number of thread or number ot Lua context to
+     * @param[in] context_count The number of thread or number ot Lua context to
      *            create, default is 1.
      * @return true if all Lua contexts were created successfully; false otherwise.
      **/
-    bool Create( const uint32_t thread_count = 1 );
+    bool Create( const uint32_t context_count = 1 );
+
+    bool Add( const std::string& name, const MicroLuaLibraryNative& library );
+
+    bool Add( const std::string& name, const MicroLuaLibraryManaged& library );
+
+    bool Extend( const std::string& name, const MicroLuaLibraryNative& extension );
+
+    bool Remove( const std::string& name );
+
+    bool Enable( const std::string& name );
+
+    bool Disable( const std::string& name );
     
     /**
      * @brief Unregister the value associated with the given name from the 
@@ -78,24 +90,6 @@ public:
      * @return true when the deletion was successful; false otherwise.
      **/
     bool UnRegister( const std::string& name );
-
-    /**
-     * @brief Load a Lua module to the registry under the specified name.
-     * @param[in] name The name under which the module will be registered in the 
-     *            registry.
-     * @param[in] path The path to the Lua module file.
-     * @return true if the module was successfully loaded and registered in the 
-     *         registry; false otherwise.
-     **/
-    bool Load( const std::string& name, const std::string& path );
-
-    /**
-     * @brief UnLoad the Lua module specified by name from the registry.
-     * @param[in] name The name under which the module is registred in the
-     *            registry.
-     * @return true if the module was successfully unloded; false otherwise. 
-     **/
-    bool UnLoad( const std::string& name );
 
     /**
      * @brief Acquire a free Lua context handle.
@@ -137,7 +131,7 @@ public:
      * @return true if a value exists under the specified name in the registry; 
      *         false otherwise.
      **/
-    bool GetExist( const std::string& name ) const;
+    bool GetGlobalExist( const std::string& name ) const;
 
     /**
      * @brief Retrieve the value under provided name from the registry.
@@ -145,7 +139,13 @@ public:
      * @return the value under name, or a default-initialized MicroLuaValue if 
      *         not found.
      **/
-    MicroLuaValue Get( const std::string& name ) const;
+    MicroLuaValue GetGlobal( const std::string& name ) const;
+
+    bool GetLibraryExist( const std::string& name ) const;
+
+    bool GetIsLibraryEnabled( const std::string& name ) const;
+
+    bool GetIsLibraryManaged( const std::string& name ) const;
 
     /**
      * @brief Verify if a context handle value is valid.
@@ -175,7 +175,7 @@ public:
      **/
     template<typename Type>
     Type Get( const std::string& name ) const {
-        auto value = m_registry.Get( name );
+        auto value = m_registry.GetGlobal( name );
 
         return value.As<Type>( );
     };

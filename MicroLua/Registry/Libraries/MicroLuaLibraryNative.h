@@ -29,19 +29,37 @@
  *
  **/
 
-#include "__micro_lua_pch.h"
+#pragma once 
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//		===	PUBLIC ===
-////////////////////////////////////////////////////////////////////////////////////////////
-MicroLuaDebugPipeSpecificaton::MicroLuaDebugPipeSpecificaton( )
-	: MicroLuaDebugPipeSpecificaton{ "", 0 }
-{ }
+#include "MicroLuaLibrary.h"
 
-MicroLuaDebugPipeSpecificaton::MicroLuaDebugPipeSpecificaton( 
-	micro_string address, 
-	const uint16_t port 
-)
-	: Address{ address },
-	Port{ port }
-{ }
+micro_class MicroLuaLibraryNative final : public MicroLuaLibrary {
+
+private:
+    std::vector<luaL_Reg> m_functions;
+
+public:
+    MicroLuaLibraryNative( );
+
+    MicroLuaLibraryNative( const MicroLuaLibraryNative& other );
+
+    MicroLuaLibraryNative( MicroLuaLibraryNative&& other ) noexcept;
+
+    MicroLuaLibraryNative( std::initializer_list<luaL_Reg> functions );
+
+    void Add( const luaL_Reg& function );
+
+    void Add( std::initializer_list<luaL_Reg> functions );
+
+    void Add( micro_string name, lua_CFunction function );
+
+    void Extend( const MicroLuaLibraryNative& extension );
+
+    micro_implement( bool Import( lua_State* lua_state ) );
+
+public:
+    micro_implement( bool GetIsValid( ) const );
+
+    const std::vector<luaL_Reg>& Get( ) const;
+
+};

@@ -45,29 +45,48 @@ MicroLuaManager::~MicroLuaManager( ) {
     Terminate( );
 }
 
-bool MicroLuaManager::Create( const uint32_t thread_count ) {
+bool MicroLuaManager::Create( const uint32_t context_count ) {
     Terminate( );
 
     auto thread_lock = std::unique_lock{ m_thread_locker };
 
     return  m_preprocessor.Create( ) && 
-            m_context.Create( thread_count );
-} 
+            m_context.Create( context_count );
+}
+
+bool MicroLuaManager::Add( const std::string& name, const MicroLuaLibraryNative& library ) {
+    return m_registry.Add( name, library );
+}
+
+bool MicroLuaManager::Add( const std::string& name, const MicroLuaLibraryManaged& library ) {
+    return m_registry.Add( name, library );
+}
+
+bool MicroLuaManager::Extend( 
+    const std::string& name, 
+    const MicroLuaLibraryNative& extension 
+) {
+    return m_registry.Extend( name, extension );
+}
+
+bool MicroLuaManager::Remove( const std::string& name ) {
+    return m_registry.Remove( name );
+}
+
+bool MicroLuaManager::Enable( const std::string& name ) {
+    return m_registry.Enable( name );
+}
+
+bool MicroLuaManager::Disable( const std::string& name ) {
+    return m_registry.Disable( name );
+}
 
 bool MicroLuaManager::UnRegister( const std::string& name ) {
     return m_registry.UnRegister( name );
 }
 
-bool MicroLuaManager::Load( const std::string& name, const std::string& path ) {
-    return m_registry.Load( name, path );
-}
-
-bool MicroLuaManager::UnLoad( const std::string& name ) {
-    return m_registry.UnLoad( name );
-}
-
 uint32_t MicroLuaManager::Acquire( ) {
-    auto thread_lock = std::unique_lock( m_thread_locker );
+    auto thread_lock    = std::unique_lock{ m_thread_locker };
     auto context_handle = m_context.Acquire( );
 
     if ( m_context.GetExist( context_handle ) ) {
@@ -80,13 +99,13 @@ uint32_t MicroLuaManager::Acquire( ) {
 }
 
 void MicroLuaManager::Release( uint32_t& context_handle ) {
-    auto thread_lock = std::unique_lock( m_thread_locker );
+    auto thread_lock = std::unique_lock{ m_thread_locker };
 
     m_context.Release( context_handle );
 }
 
 void MicroLuaManager::Terminate( ) {
-    auto thread_lock = std::unique_lock( m_thread_locker );
+    auto thread_lock = std::unique_lock{ m_thread_locker };
 
     m_preprocessor.Terminate( );
     m_context.Terminate( );
@@ -95,12 +114,24 @@ void MicroLuaManager::Terminate( ) {
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC GET ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-bool MicroLuaManager::GetExist( const std::string& name ) const {
-    return m_registry.GetExist( name );
+bool MicroLuaManager::GetGlobalExist( const std::string& name ) const {
+    return m_registry.GetGlobalExist( name );
 }
 
-MicroLuaValue MicroLuaManager::Get( const std::string& name ) const {
-    return m_registry.Get( name );
+MicroLuaValue MicroLuaManager::GetGlobal( const std::string& name ) const {
+    return m_registry.GetGlobal( name );
+}
+
+bool MicroLuaManager::GetLibraryExist( const std::string& name ) const {
+    return m_registry.GetLibraryExist( name );
+}
+
+bool MicroLuaManager::GetIsLibraryEnabled( const std::string& name ) const {
+    return m_registry.GetIsLibraryEnabled( name );
+}
+
+bool MicroLuaManager::GetIsLibraryManaged( const std::string& name ) const {
+    return m_registry.GetIsLibraryManaged( name );
 }
 
 bool MicroLuaManager::GetContextExist( const uint32_t context_handle ) const {

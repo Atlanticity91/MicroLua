@@ -53,6 +53,25 @@ void MicroLuaPreprocessor::Terminate( ) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PRIVATE STATIC ===
+////////////////////////////////////////////////////////////////////////////////////////////
+int32_t MicroLuaPreprocessor::LuaWriter(
+	lua_State* lua_state,
+	const void* data,
+	size_t size,
+	void* user_data
+) {
+	const auto* compiled_begin = micro_cast( data, const uint8_t* );
+	const auto* compiled_end = compiled_begin + size;
+	auto* bytecode_array = micro_cast( user_data, std::vector<uint8_t>* );
+	auto bytecode_end = bytecode_array->end( );
+
+	bytecode_array->insert( bytecode_end, compiled_begin, compiled_end );
+
+	return LUA_OK;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC GET ===
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool MicroLuaPreprocessor::GetIsValid( ) const {
