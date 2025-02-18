@@ -31,7 +31,7 @@ workspace 'Micro Solution'
 		include 'Thirdparty/Build-Lua.lua'
 	--- TEST PROJECTS
 	group 'Test'
-		include 'Test/Build-MicroTest.lua'
+		include 'Test/Build-Test-Lua.lua'
 	group ''
 
 	--- MAIN PROJECT
